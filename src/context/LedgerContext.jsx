@@ -16,7 +16,7 @@ import {
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage, IS_MOCK_MODE } from '../config/firebase';
 import { useAuth } from './AuthContext';
-import { format } from 'date-fns';
+import { format, subDays } from 'date-fns';
 import { generateMockLedgers, generateMockRoutines } from '../utils/mockData';
 
 const LedgerContext = createContext(undefined);
@@ -66,14 +66,15 @@ export function LedgerProvider({ children }) {
         
         // If nothing was loaded or we shouldn't load, generate fresh random data
         if (mockLedgersRef.current.length === 0) {
-          mockLedgersRef.current = generateMockLedgers(
-            currentUser.uid, 
-            60, 
-            { 
-              calories: userData.dailyMetrics?.calories || 2000, 
-              protein: userData.dailyMetrics?.protein || 150 
-            }
-          );
+        mockLedgersRef.current = generateMockLedgers(
+          currentUser.uid, 
+          60, 
+          { 
+            calories: userData.dailyMetrics?.calories || 2000, 
+            protein: userData.dailyMetrics?.protein || 150,
+            waterTarget: userData.preferences?.waterTarget || 2500
+          }
+        );
         }
       }
 
@@ -132,7 +133,8 @@ export function LedgerProvider({ children }) {
           date: dateString,
           foods: [],
           activities: [],
-          wins: []
+          wins: [],
+          water: 0
         };
         mockLedgersRef.current.push(newLedger);
         setCurrentLedger(newLedger);
@@ -152,7 +154,8 @@ export function LedgerProvider({ children }) {
         id: ledgerDoc.id,
         foods: data.foods || [],
         activities: data.activities || [],
-        wins: data.wins || []
+        wins: data.wins || [],
+        water: data.water || 0
       });
     } else {
       // Create empty ledger for the day
@@ -162,7 +165,8 @@ export function LedgerProvider({ children }) {
         date: dateString,
         foods: [],
         activities: [],
-        wins: []
+        wins: [],
+        water: 0
       };
       await setDoc(ledgerRef, newLedger);
       setCurrentLedger(newLedger);
@@ -557,6 +561,64 @@ export function LedgerProvider({ children }) {
     return result;
   }
 
+  async function updateWater(amount) {
+    if (!currentUser || !currentLedger) return;
+
+    const newWater = Math.max(0, (currentLedger.water || 0) + amount);
+
+    if (isEffectivelyMock) {
+      const updatedLedger = {
+        ...currentLedger,
+        water: newWater
+      };
+      setCurrentLedger(updatedLedger);
+      const idx = mockLedgersRef.current.findIndex(l => l.id === currentLedger.id);
+      if (idx >= 0) mockLedgersRef.current[idx] = updatedLedger;
+      return;
+    }
+
+    const ledgerRef = doc(db, 'ledgers', currentLedger.id);
+    await updateDoc(ledgerRef, {
+      water: newWater
+    });
+
+    setCurrentLedger({
+      ...currentLedger,
+      water: newWater
+    });
+  }
+
+  function getConsumptionStats() {
+    const last30Days = Array.from({ length: 30 }, (_, i) => {
+      const d = subDays(new Date(), i);
+      return format(d, 'yyyy-MM-dd');
+    });
+
+    const stats = {
+      protein: { avgEntries: 3 },
+      carbs: { avgEntries: 3 },
+      fat: { avgEntries: 3 },
+      water: { avgEntries: 8 }
+    };
+
+    if (isEffectivelyMock && mockLedgersRef.current.length > 0) {
+      const relevantLedgers = mockLedgersRef.current.filter(l => last30Days.includes(l.date));
+      if (relevantLedgers.length > 0) {
+        // Calculate average entries that contribute to each macro
+        const proteinCounts = relevantLedgers.map(l => l.foods.filter(f => (f.finalNutrition?.protein || 0) > 5).length);
+        const carbCounts = relevantLedgers.map(l => l.foods.filter(f => (f.finalNutrition?.carbs || 0) > 5).length);
+        const fatCounts = relevantLedgers.map(l => l.foods.filter(f => (f.finalNutrition?.fat || 0) > 2).length);
+        
+        stats.protein.avgEntries = Math.max(2, Math.round(proteinCounts.reduce((a, b) => a + b, 0) / relevantLedgers.length));
+        stats.carbs.avgEntries = Math.max(2, Math.round(carbCounts.reduce((a, b) => a + b, 0) / relevantLedgers.length));
+        stats.fat.avgEntries = Math.max(2, Math.round(fatCounts.reduce((a, b) => a + b, 0) / relevantLedgers.length));
+        // Water is usually tracked in fixed increments, default 8 is good for ~250ml per glass
+      }
+    }
+    // Note: For real Firebase users, we'd need a separate fetch or use the existing history cache
+    return stats;
+  }
+
   const value = {
     currentDate,
     setCurrentDate,
@@ -576,7 +638,9 @@ export function LedgerProvider({ children }) {
     routines,
     addRoutine,
     deleteRoutine,
-    refreshRoutines
+    refreshRoutines,
+    updateWater,
+    getConsumptionStats
   };
 
   return (

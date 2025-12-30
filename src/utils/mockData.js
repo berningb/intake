@@ -142,6 +142,10 @@ export function generateMockLedgers(userId, days = 60, targets) {
       }
     }
 
+    const water = isPerfectDay 
+      ? targets?.waterTarget || 2500 
+      : Math.floor(Math.random() * (targets?.waterTarget || 2500) * 1.2);
+
     ledgers.push({
       id: `${userId}_${dateString}`,
       userId,
@@ -149,6 +153,7 @@ export function generateMockLedgers(userId, days = 60, targets) {
       foods,
       activities: [],
       wins: [],
+      water,
     });
   }
 
