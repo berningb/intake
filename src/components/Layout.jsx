@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Home, Calendar, Plus, LogOut, Dumbbell, UserPlus, ScanBarcode, Search, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Scan } from '../pages/Scan';
+import { ExperienceBar } from './ExperienceBar';
 
 export function Layout() {
   const { userData, logout, isGuest, upgradeGuestAccount } = useAuth();
@@ -48,6 +49,10 @@ export function Layout() {
             <span>Routines</span>
           </NavLink>
         </nav>
+
+        <div className="mt-xl">
+          <ExperienceBar />
+        </div>
 
         <div className="flex flex-col gap-sm pt-lg border-t border-gray-800 mt-auto">
           {isGuest && (
