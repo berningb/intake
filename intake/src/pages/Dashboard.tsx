@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, BarChart2 } from 'lucide-react';
+import { Calendar, BarChart2, Layout as LayoutIcon } from 'lucide-react';
 import { DayView } from '../components/DayView';
 import { History } from './History';
+import { Overview } from './Overview';
 import styles from './Dashboard.module.css';
 
 export function Dashboard() {
-  const [activeTab, setActiveTab] = useState<'today' | 'history'>('today');
+  const [activeTab, setActiveTab] = useState<'today' | 'history' | 'overview'>('today');
 
   return (
     <div className={styles.dashboardContainer}>
@@ -19,6 +20,13 @@ export function Dashboard() {
           <span>Today</span>
         </button>
         <button 
+          className={`${styles.tab} ${activeTab === 'overview' ? styles.active : ''}`}
+          onClick={() => setActiveTab('overview')}
+        >
+          <LayoutIcon size={18} />
+          <span>Overview</span>
+        </button>
+        <button 
           className={`${styles.tab} ${activeTab === 'history' ? styles.active : ''}`}
           onClick={() => setActiveTab('history')}
         >
@@ -28,9 +36,11 @@ export function Dashboard() {
       </div>
 
       <div className={styles.tabContent}>
-        <AnimatePresence>
+        <AnimatePresence mode="wait">
           {activeTab === 'today' ? (
             <DayView key="today" />
+          ) : activeTab === 'overview' ? (
+            <Overview key="overview" />
           ) : (
             <History key="history" />
           )}
