@@ -247,6 +247,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, [currentUser, userData, isGuest, loading]);
 
+  useEffect(() => {
+    if (userData?.preferences?.theme) {
+      document.documentElement.setAttribute('data-theme', userData.preferences.theme);
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+    }
+  }, [userData?.preferences?.theme]);
+
   const value = {
     currentUser,
     userData,

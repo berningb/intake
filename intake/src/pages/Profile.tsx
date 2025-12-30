@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Save, User, Target, Activity, AlertTriangle, Loader2 } from 'lucide-react';
+import { Save, User, Target, Activity, AlertTriangle, Loader2, Moon, Sun } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { DailyMetrics, UserPreferences } from '../types';
 import styles from './Profile.module.css';
@@ -94,6 +94,25 @@ export function Profile() {
               onChange={(e) => setDisplayName(e.target.value)}
               placeholder="Your name"
             />
+          </div>
+          <div className={styles.field}>
+            <label>Theme Preference</label>
+            <div className={styles.themeToggle}>
+              <button
+                className={`${styles.themeBtn} ${preferences.theme !== 'light' ? styles.active : ''}`}
+                onClick={() => setPreferences({ ...preferences, theme: 'dark' })}
+              >
+                <Moon size={18} />
+                <span>Cyberpunk</span>
+              </button>
+              <button
+                className={`${styles.themeBtn} ${preferences.theme === 'light' ? styles.active : ''}`}
+                onClick={() => setPreferences({ ...preferences, theme: 'light' })}
+              >
+                <Sun size={18} />
+                <span>Light Mode</span>
+              </button>
+            </div>
           </div>
           <div className={styles.field}>
             <label>Email</label>

@@ -2,6 +2,7 @@
 export interface UserPreferences {
   dietaryRestrictions: string[];
   activityLevel: 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active';
+  theme?: 'dark' | 'light';
 }
 
 export interface DailyMetrics {
