@@ -14,6 +14,7 @@ const MOCK_USER_DATA = {
   id: 'mock-user-123',
   email: 'mock@example.com',
   displayName: 'Mock Pilot',
+  xp: 8500,
   preferences: {
     dietaryRestrictions: [],
     activityLevel: 'moderate'
@@ -46,6 +47,7 @@ export function AuthProvider({ children }) {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isGuest, setIsGuest] = useState(false);
+  const [lastXpGain, setLastXpGain] = useState(null);
 
   async function fetchUserData(uid) {
     const userDoc = await getDoc(doc(db, 'users', uid));
@@ -74,6 +76,7 @@ export function AuthProvider({ children }) {
     const newUser = {
       email: user.email || '',
       displayName: isGuestUser ? 'Guest' : (user.displayName || ''),
+      xp: 0,
       preferences: defaultPreferences,
       dailyMetrics: defaultMetrics,
       createdAt: new Date(),
@@ -206,6 +209,19 @@ export function AuthProvider({ children }) {
     }
   }
 
+  async function addXP(amount) {
+    if (!currentUser || !userData) return;
+    
+    const currentXP = userData.xp || 0;
+    const newXP = currentXP + amount;
+    
+    setLastXpGain({ amount, timestamp: Date.now() });
+    setTimeout(() => setLastXpGain(null), 3000);
+    
+    await updateUserData({ xp: newXP });
+    return newXP;
+  }
+
   useEffect(() => {
     // Handle both real Firebase auth and mock auth
     const handleAuthChange = async (user) => {
@@ -286,7 +302,9 @@ export function AuthProvider({ children }) {
     continueAsGuest,
     upgradeGuestAccount,
     logout,
-    updateUserData
+    updateUserData,
+    addXP,
+    lastXpGain
   };
 
   return (
