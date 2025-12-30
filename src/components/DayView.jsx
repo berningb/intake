@@ -6,7 +6,6 @@ import { useAuth } from '../context/AuthContext';
 import { useLedger } from '../context/LedgerContext';
 import { useNavigate } from 'react-router-dom';
 import { Scan } from '../pages/Scan';
-import { WaterTracker } from './WaterTracker';
 import { LiquidProgressBar } from './LiquidProgressBar';
 
 export function DayView({ onClose, isModal = false }) {
