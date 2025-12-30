@@ -7,7 +7,6 @@ import { useLedger } from '../context/LedgerContext';
 import { useNavigate } from 'react-router-dom';
 import { Scan } from '../pages/Scan';
 import { LiquidProgressBar } from './LiquidProgressBar';
-import { BountyBoard } from './BountyBoard';
 
 export function DayView({ onClose, isModal = false }) {
   const { userData } = useAuth();
@@ -435,10 +434,6 @@ export function DayView({ onClose, isModal = false }) {
           />
         </div>
       </motion.section>
-
-      <motion.div variants={itemVariants} className="mb-lg">
-        <BountyBoard />
-      </motion.div>
 
       <motion.section className="bg-bg-card rounded-md p-xl border border-gray-800 mb-lg" variants={itemVariants}>
         <div className="flex justify-between items-center mb-md">

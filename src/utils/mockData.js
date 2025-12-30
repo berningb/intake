@@ -146,6 +146,18 @@ export function generateMockLedgers(userId, days = 60, targets) {
       ? targets?.waterTarget || 2500 
       : Math.floor(Math.random() * (targets?.waterTarget || 2500) * 1.2);
 
+    // Calculate which missions would be completed for this mock day
+    const completedMissions = [];
+    const totals = foods.reduce((acc, f) => ({
+      cal: acc.cal + (f.finalNutrition?.calories || 0),
+      prot: acc.p + (f.finalNutrition?.protein || 0)
+    }), { cal: 0, prot: 0 });
+
+    if (foods.length >= 3) completedMissions.push('fuel_intake');
+    if (water >= (targets?.waterTarget || 2500)) completedMissions.push('hydration_sync');
+    if (totals.prot >= (targets?.protein || 150) * 0.9) completedMissions.push('protein_protocol');
+    if (Math.abs(totals.cal - (targets?.calories || 2000)) <= 100) completedMissions.push('precision_sync');
+
     ledgers.push({
       id: `${userId}_${dateString}`,
       userId,
@@ -154,7 +166,7 @@ export function generateMockLedgers(userId, days = 60, targets) {
       activities: [],
       wins: [],
       water,
-      completedMissions: [],
+      completedMissions,
     });
   }
 

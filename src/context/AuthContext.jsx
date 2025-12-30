@@ -135,9 +135,19 @@ export function AuthProvider({ children }) {
       }
     }
 
-    // Fallback to mock guest
-    setCurrentUser({ uid: 'mock-guest-456', email: '', displayName: 'Guest' });
-    setUserData({ ...MOCK_USER_DATA, id: 'mock-guest-456', displayName: 'Guest' });
+    // Fallback to mock guest with a unique ID per session
+    // This ensures that "refreshing" as a guest provides a new experience/bounties
+    // Using a timestamp + random to guarantee uniqueness even with rapid refreshes
+    const guestId = `guest_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+    
+    const guestData = { 
+      ...MOCK_USER_DATA, 
+      id: guestId, 
+      displayName: 'Guest Pilot',
+      xp: 450
+    };
+    setCurrentUser({ uid: guestId, email: '', displayName: 'Guest Pilot' });
+    setUserData(guestData);
     setIsGuest(true);
   }
 
@@ -234,13 +244,22 @@ export function AuthProvider({ children }) {
         const savedMockUser = localStorage.getItem('intake_mock_user');
         if (savedMockUser) {
           const parsed = JSON.parse(savedMockUser);
-          setCurrentUser(parsed.currentUser);
-          setUserData({
-            ...parsed.userData,
-            createdAt: new Date(parsed.userData.createdAt),
-            updatedAt: new Date(parsed.userData.updatedAt)
-          });
-          setIsGuest(parsed.isGuest);
+          
+          // CRITICAL: If the saved user is a guest, ignore it and force a clean state
+          if (parsed.isGuest) {
+            localStorage.removeItem('intake_mock_user');
+            setCurrentUser(null);
+            setUserData(null);
+            setIsGuest(false);
+          } else {
+            setCurrentUser(parsed.currentUser);
+            setUserData({
+              ...parsed.userData,
+              createdAt: new Date(parsed.userData.createdAt),
+              updatedAt: new Date(parsed.userData.updatedAt)
+            });
+            setIsGuest(false);
+          }
         } else {
           setCurrentUser(null);
           setUserData(null);
@@ -281,7 +300,7 @@ export function AuthProvider({ children }) {
       } else if (!currentUser) {
         localStorage.removeItem('intake_mock_user');
       }
-      // If it's a guest, we don't save to localStorage so it resets on refresh
+      // Guests intentionally do not save to localStorage so they reset on refresh
     }
   }, [currentUser, userData, isGuest, loading]);
 
