@@ -134,7 +134,8 @@ export function LedgerProvider({ children }) {
           foods: [],
           activities: [],
           wins: [],
-          water: 0
+          water: 0,
+          completedMissions: []
         };
         mockLedgersRef.current.push(newLedger);
         setCurrentLedger(newLedger);
@@ -155,7 +156,8 @@ export function LedgerProvider({ children }) {
         foods: data.foods || [],
         activities: data.activities || [],
         wins: data.wins || [],
-        water: data.water || 0
+        water: data.water || 0,
+        completedMissions: data.completedMissions || []
       });
     } else {
       // Create empty ledger for the day
@@ -166,7 +168,8 @@ export function LedgerProvider({ children }) {
         foods: [],
         activities: [],
         wins: [],
-        water: 0
+        water: 0,
+        completedMissions: []
       };
       await setDoc(ledgerRef, newLedger);
       setCurrentLedger(newLedger);
@@ -625,6 +628,78 @@ export function LedgerProvider({ children }) {
     return stats;
   }
 
+  const checkMissions = useCallback(async () => {
+    if (!currentUser || !currentLedger || !userData) return;
+
+    const totals = getTotals();
+    const waterTarget = userData.preferences?.waterTarget || 2500;
+    const calorieTarget = userData.dailyMetrics?.calories || 2000;
+    const proteinTarget = userData.dailyMetrics?.protein || 150;
+    
+    const missions = [
+      { id: 'fuel_intake', name: 'Fuel Intake', desc: 'Log at least 3 meals', goal: 3, current: currentLedger.foods.length, xp: 150 },
+      { id: 'hydration_sync', name: 'Hydration Sync', desc: 'Reach your water target', goal: waterTarget, current: currentLedger.water, xp: 200 },
+      { id: 'protein_protocol', name: 'Protein Protocol', desc: 'Reach 90% protein target', goal: proteinTarget * 0.9, current: totals.protein, xp: 250 },
+      { id: 'precision_sync', name: 'Precision Sync', desc: 'Stay within 100 cal of target', goal: 1, current: Math.abs(totals.calories - calorieTarget) <= 100 && totals.calories > 0 ? 1 : 0, xp: 300 },
+      { id: 'physical_link', name: 'Physical Link', desc: 'Log at least one activity', goal: 1, current: currentLedger.activities.length, xp: 150 }
+    ];
+
+    const completedNow = missions
+      .filter(m => m.current >= m.goal)
+      .map(m => m.id);
+
+    const newlyCompleted = completedNow.filter(id => !(currentLedger.completedMissions || []).includes(id));
+
+    if (newlyCompleted.length > 0) {
+      const updatedMissions = [...(currentLedger.completedMissions || []), ...newlyCompleted];
+      
+      // Calculate total XP for new missions
+      const bonusXP = newlyCompleted.reduce((sum, id) => {
+        const mission = missions.find(m => m.id === id);
+        return sum + (mission?.xp || 0);
+      }, 0);
+
+      if (isEffectivelyMock) {
+        const updatedLedger = { ...currentLedger, completedMissions: updatedMissions };
+        setCurrentLedger(updatedLedger);
+        const idx = mockLedgersRef.current.findIndex(l => l.id === currentLedger.id);
+        if (idx >= 0) mockLedgersRef.current[idx] = updatedLedger;
+      } else {
+        const ledgerRef = doc(db, 'ledgers', currentLedger.id);
+        await updateDoc(ledgerRef, { completedMissions: updatedMissions });
+        setCurrentLedger({ ...currentLedger, completedMissions: updatedMissions });
+      }
+
+      addXP(bonusXP);
+    }
+  }, [currentUser, currentLedger, userData, getTotals, isEffectivelyMock, addXP]);
+
+  useEffect(() => {
+    if (currentLedger && userData) {
+      checkMissions();
+    }
+  }, [currentLedger?.foods, currentLedger?.water, currentLedger?.activities, userData]);
+
+  const getMissions = () => {
+    if (!userData || !currentLedger) return [];
+    
+    const totals = getTotals();
+    const waterTarget = userData.preferences?.waterTarget || 2500;
+    const calorieTarget = userData.dailyMetrics?.calories || 2000;
+    const proteinTarget = userData.dailyMetrics?.protein || 150;
+
+    return [
+      { id: 'fuel_intake', name: 'Fuel Intake', desc: 'Log at least 3 meals', goal: 3, current: currentLedger.foods.length, xp: 150 },
+      { id: 'hydration_sync', name: 'Hydration Sync', desc: 'Reach your water target', goal: waterTarget, current: currentLedger.water, xp: 200 },
+      { id: 'protein_protocol', name: 'Protein Protocol', desc: 'Reach 90% protein target', goal: Math.round(proteinTarget * 0.9), current: Math.round(totals.protein), xp: 250 },
+      { id: 'precision_sync', name: 'Precision Sync', desc: 'Within 100 cal of target', goal: 1, current: Math.abs(totals.calories - calorieTarget) <= 100 && totals.calories > 0 ? 1 : 0, xp: 300 },
+      { id: 'physical_link', name: 'Physical Link', desc: 'Log at least one activity', goal: 1, current: currentLedger.activities.length, xp: 150 }
+    ].map(m => ({
+      ...m,
+      completed: (currentLedger.completedMissions || []).includes(m.id)
+    }));
+  };
+
   const value = {
     currentDate,
     setCurrentDate,
@@ -646,7 +721,8 @@ export function LedgerProvider({ children }) {
     deleteRoutine,
     refreshRoutines,
     updateWater,
-    getConsumptionStats
+    getConsumptionStats,
+    getMissions
   };
 
   return (

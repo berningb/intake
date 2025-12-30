@@ -154,6 +154,7 @@ export function generateMockLedgers(userId, days = 60, targets) {
       activities: [],
       wins: [],
       water,
+      completedMissions: [],
     });
   }
 
