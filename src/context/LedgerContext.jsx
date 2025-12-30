@@ -30,7 +30,7 @@ export function useLedger() {
 }
 
 export function LedgerProvider({ children }) {
-  const { currentUser, userData, isGuest } = useAuth();
+  const { currentUser, userData, isGuest, addXP } = useAuth();
   // A user is only in mock mode if they are a guest OR if global mock mode is on AND they aren't a real logged-in user
   const isEffectivelyMock = isGuest || (IS_MOCK_MODE && (!currentUser || currentUser.email === 'mock@example.com'));
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -263,18 +263,19 @@ export function LedgerProvider({ children }) {
       // Update mock ledgers ref
       const idx = mockLedgersRef.current.findIndex(l => l.id === currentLedger.id);
       if (idx >= 0) mockLedgersRef.current[idx] = updatedLedger;
-      return;
+    } else {
+      const ledgerRef = doc(db, 'ledgers', currentLedger.id);
+      await updateDoc(ledgerRef, {
+        foods: arrayUnion(newFood)
+      });
+
+      setCurrentLedger({
+        ...currentLedger,
+        foods: [...currentLedger.foods, newFood]
+      });
     }
 
-    const ledgerRef = doc(db, 'ledgers', currentLedger.id);
-    await updateDoc(ledgerRef, {
-      foods: arrayUnion(newFood)
-    });
-
-    setCurrentLedger({
-      ...currentLedger,
-      foods: [...currentLedger.foods, newFood]
-    });
+    addXP(50);
   }
 
   async function removeFoodEntry(foodId) {
@@ -350,18 +351,19 @@ export function LedgerProvider({ children }) {
       setCurrentLedger(updatedLedger);
       const idx = mockLedgersRef.current.findIndex(l => l.id === currentLedger.id);
       if (idx >= 0) mockLedgersRef.current[idx] = updatedLedger;
-      return;
+    } else {
+      const ledgerRef = doc(db, 'ledgers', currentLedger.id);
+      await updateDoc(ledgerRef, {
+        activities: arrayUnion(newActivity)
+      });
+
+      setCurrentLedger({
+        ...currentLedger,
+        activities: [...currentLedger.activities, newActivity]
+      });
     }
 
-    const ledgerRef = doc(db, 'ledgers', currentLedger.id);
-    await updateDoc(ledgerRef, {
-      activities: arrayUnion(newActivity)
-    });
-
-    setCurrentLedger({
-      ...currentLedger,
-      activities: [...currentLedger.activities, newActivity]
-    });
+    addXP(100);
   }
 
   async function removeActivityEntry(activityId) {
@@ -486,18 +488,19 @@ export function LedgerProvider({ children }) {
       setCurrentLedger(updatedLedger);
       const idx = mockLedgersRef.current.findIndex(l => l.id === currentLedger.id);
       if (idx >= 0) mockLedgersRef.current[idx] = updatedLedger;
-      return;
+    } else {
+      const ledgerRef = doc(db, 'ledgers', currentLedger.id);
+      await updateDoc(ledgerRef, {
+        wins: arrayUnion(win)
+      });
+
+      setCurrentLedger({
+        ...currentLedger,
+        wins: [...(currentLedger.wins || []), win]
+      });
     }
 
-    const ledgerRef = doc(db, 'ledgers', currentLedger.id);
-    await updateDoc(ledgerRef, {
-      wins: arrayUnion(win)
-    });
-
-    setCurrentLedger({
-      ...currentLedger,
-      wins: [...(currentLedger.wins || []), win]
-    });
+    addXP(75);
   }
 
   async function removeWin(win) {
@@ -574,18 +577,21 @@ export function LedgerProvider({ children }) {
       setCurrentLedger(updatedLedger);
       const idx = mockLedgersRef.current.findIndex(l => l.id === currentLedger.id);
       if (idx >= 0) mockLedgersRef.current[idx] = updatedLedger;
-      return;
+    } else {
+      const ledgerRef = doc(db, 'ledgers', currentLedger.id);
+      await updateDoc(ledgerRef, {
+        water: newWater
+      });
+
+      setCurrentLedger({
+        ...currentLedger,
+        water: newWater
+      });
     }
 
-    const ledgerRef = doc(db, 'ledgers', currentLedger.id);
-    await updateDoc(ledgerRef, {
-      water: newWater
-    });
-
-    setCurrentLedger({
-      ...currentLedger,
-      water: newWater
-    });
+    if (amount > 0) {
+      addXP(10);
+    }
   }
 
   function getConsumptionStats() {
