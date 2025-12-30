@@ -5,6 +5,7 @@ import { Home, Calendar, Plus, LogOut, Dumbbell, UserPlus, ScanBarcode, Search, 
 import { useAuth } from '../context/AuthContext';
 import { Scan } from '../pages/Scan';
 import { ExperienceBar } from './ExperienceBar';
+import { BountyBoard } from './BountyBoard';
 
 export function Layout() {
   const { userData, logout, isGuest, upgradeGuestAccount } = useAuth();
@@ -27,7 +28,7 @@ export function Layout() {
 
   return (
     <div className="flex min-h-screen bg-bg-deep">
-      <aside className="bg-bg-card border-r border-gray-800 flex flex-col p-lg fixed left-0 top-0 w-[260px] h-screen overflow-y-auto z-50 shadow-[10px_0_30px_rgba(0,0,0,0.5)] max-md:hidden">
+      <aside className="bg-bg-card border-r border-gray-800 flex flex-col p-lg fixed left-0 top-0 w-[340px] h-screen overflow-y-auto z-50 shadow-[10px_0_30px_rgba(0,0,0,0.5)] max-md:hidden">
         <div className="py-md px-0 pb-xl border-b border-gray-800 mb-lg relative after:content-[''] after:absolute after:-bottom-[1px] after:left-0 after:w-[40px] after:height-[1px] after:bg-primary after:shadow-neon">
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
@@ -52,6 +53,10 @@ export function Layout() {
 
         <div className="mt-xl">
           <ExperienceBar />
+        </div>
+
+        <div className="mt-md mb-xl overflow-y-auto no-scrollbar pr-xs">
+          <BountyBoard isSidebar={true} />
         </div>
 
         <div className="flex flex-col gap-sm pt-lg border-t border-gray-800 mt-auto">
@@ -80,7 +85,7 @@ export function Layout() {
         </div>
       </aside>
 
-      <main className="flex-1 ml-[260px] p-xl min-h-screen bg-bg-deep relative before:content-[''] before:absolute before:top-0 before:left-0 before:right-0 before:h-[200px] before:bg-[radial-gradient(circle_at_50%_0%,rgba(0,242,255,0.05)_0%,transparent_70%)] before:pointer-events-none max-md:ml-0 max-md:p-md max-md:pb-[100px]">
+      <main className="flex-1 ml-[340px] p-xl min-h-screen bg-bg-deep relative before:content-[''] before:absolute before:top-0 before:left-0 before:right-0 before:h-[200px] before:bg-[radial-gradient(circle_at_50%_0%,rgba(0,242,255,0.05)_0%,transparent_70%)] before:pointer-events-none max-md:ml-0 max-md:p-md max-md:pb-[100px]">
         {isGuest && (
           <motion.div 
             className="bg-warning/5 border border-warning rounded-sm p-md mb-lg text-[0.8rem] text-white flex items-center justify-center gap-md flex-wrap font-display uppercase tracking-[0.05em] shadow-[0_0_15px_rgba(255,255,0,0.1)]"

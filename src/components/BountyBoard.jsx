@@ -13,7 +13,7 @@ export function BountyBoard({ isSidebar = false }) {
   const completedCount = missions.filter(m => m.completed).length;
 
   return (
-    <div className={`${isSidebar ? 'bg-transparent border-none p-0 shadow-none' : 'bg-bg-card border border-gray-800 rounded-md p-xl shadow-card'} relative overflow-hidden`}>
+    <div className={`${isSidebar ? 'bg-transparent border-none p-0 shadow-none' : 'bg-bg-card border border-gray-800 rounded-md p-xl shadow-card'} relative`}>
       {/* Background Decorative Element */}
       {!isSidebar && <div className="absolute top-0 right-0 w-[150px] h-[150px] bg-primary/5 rounded-full blur-[50px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />}
       
@@ -43,7 +43,7 @@ export function BountyBoard({ isSidebar = false }) {
             animate={{ height: 'auto', opacity: 1, marginTop: isSidebar ? 12 : 24 }}
             exit={{ height: 0, opacity: 0, marginTop: 0 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="overflow-hidden"
+            className={isSidebar ? "" : "overflow-hidden"}
           >
             <div className={`grid ${isSidebar ? 'gap-sm' : 'gap-md'} relative z-10`}>
               {missions.map((mission) => (
@@ -56,7 +56,7 @@ export function BountyBoard({ isSidebar = false }) {
                   }`}
                   whileHover={{ x: mission.completed ? 0 : 4 }}
                 >
-                  <div className={`shrink-0 ${mission.completed ? 'text-primary' : 'text-gray-600'}`}>
+                  <div className={`shrink-0 ${mission.completed ? 'text-primary' : 'text-gray-600'} mr-2`}>
                     {mission.completed ? (
                       <CheckCircle2 size={isSidebar ? 16 : 24} className="drop-shadow-[0_0_8px_var(--color-primary-glow)]" />
                     ) : (
@@ -65,15 +65,32 @@ export function BountyBoard({ isSidebar = false }) {
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-baseline mb-0">
-                      <h3 className={`font-display ${isSidebar ? 'text-[0.6rem]' : 'text-[0.8rem]'} font-black uppercase tracking-[0.1em] truncate ${mission.completed ? 'text-white' : 'text-gray-400'}`}>
+                    <div className="flex justify-between items-baseline mb-0 gap-x-4">
+                      <h3 
+                        className={`font-display ${isSidebar ? 'text-[0.6rem]' : 'text-[0.8rem]'} font-black uppercase tracking-[0.1em] ${mission.completed ? 'text-white' : 'text-gray-400'}`}
+                        title={isSidebar ? mission.desc : ""}
+                      >
                         {mission.name}
                       </h3>
-                      <div className={`flex items-center gap-1 font-display ${isSidebar ? 'text-[0.55rem]' : 'text-[0.65rem]'} font-bold ${mission.completed ? 'text-secondary' : 'text-gray-600'}`}>
+                      <div className={`flex items-center gap-1 font-display ${isSidebar ? 'text-[0.55rem]' : 'text-[0.65rem]'} font-bold shrink-0 ${mission.completed ? 'text-secondary' : 'text-gray-600'}`}>
                         <Zap size={isSidebar ? 8 : 10} />
                         <span>+{mission.xp} {isSidebar ? '' : 'DP'}</span>
                       </div>
                     </div>
+                    {isSidebar && !mission.completed && (
+                      <div className="mt-1">
+                        <div className="flex justify-between items-center mb-0.5">
+                          <span className="text-[0.5rem] text-gray-500 font-body leading-tight pr-2">
+                            {mission.desc}
+                          </span>
+                          {mission.goal > 1 && (
+                            <span className="text-[0.5rem] font-display text-gray-600 tabular-nums">
+                              {Math.round(mission.current)}/{mission.goal}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
                     {!isSidebar && (
                       <p className="text-[0.7rem] text-gray-500 font-body leading-tight">
                         {mission.desc}
@@ -83,7 +100,7 @@ export function BountyBoard({ isSidebar = false }) {
 
                   {/* Progress Bar for non-binary missions */}
                   {mission.goal > 1 && !mission.completed && (
-                    <div className={`${isSidebar ? 'w-[40px]' : 'w-[80px]'} shrink-0 max-sm:hidden`}>
+                    <div className={`${isSidebar ? 'w-[60px]' : 'w-[80px]'} shrink-0 max-sm:hidden ml-auto`}>
                       {!isSidebar && (
                         <div className="flex justify-between mb-1">
                           <span className="text-[0.55rem] font-display text-gray-600 uppercase">Sync</span>
