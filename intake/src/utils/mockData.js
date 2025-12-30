@@ -1,5 +1,4 @@
 import { format, subDays } from 'date-fns';
-import { DayLedger, FoodEntry, Routine } from '../types';
 
 // Common foods with realistic nutrition
 const breakfastFoods = [
@@ -54,22 +53,22 @@ const snackFoods = [
   { name: 'Trail Mix', calories: 200, protein: 6, carbs: 20, fat: 12 },
 ];
 
-function randomFromArray<T>(arr: T[]): T {
+function randomFromArray(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-function addVariation(value: number, percent: number = 10): number {
+function addVariation(value, percent = 10) {
   const variation = value * (percent / 100);
   return Math.round(value + (Math.random() * variation * 2 - variation));
 }
 
 function generateFoodEntry(
-  userId: string,
-  date: string,
-  food: { name: string; calories: number; protein: number; carbs: number; fat: number },
-  mealType: string,
-  noVariation: boolean = false
-): FoodEntry {
+  userId,
+  date,
+  food,
+  mealType,
+  noVariation = false
+) {
   return {
     id: `food_${date}_${mealType}_${Math.random().toString(36).substr(2, 9)}`,
     userId,
@@ -86,8 +85,8 @@ function generateFoodEntry(
   };
 }
 
-export function generateMockLedgers(userId: string, days: number = 60, targets?: { calories: number, protein: number }): DayLedger[] {
-  const ledgers: DayLedger[] = [];
+export function generateMockLedgers(userId, days = 60, targets) {
+  const ledgers = [];
   const today = new Date();
 
   // Targets used for "Perfect" days
@@ -98,20 +97,27 @@ export function generateMockLedgers(userId: string, days: number = 60, targets?:
     const date = subDays(today, i);
     const dateString = format(date, 'yyyy-MM-dd');
     
-    const foods: FoodEntry[] = [];
+    const foods = [];
     
     // Determine if this should be a "Perfect" day (30% chance)
     const isPerfectDay = Math.random() < 0.35;
     
     if (isPerfectDay) {
-      // Create a day that hits the targets
-      // High protein meals to reach ~150g protein
-      foods.push(generateFoodEntry(userId, dateString, { name: 'Protein Oats & Egg Whites', calories: 450, protein: 45, carbs: 40, fat: 12 }, 'breakfast', true));
-      foods.push(generateFoodEntry(userId, dateString, { name: 'Large Chicken Salad with Quinoa', calories: 550, protein: 45, carbs: 35, fat: 20 }, 'lunch', true));
-      foods.push(generateFoodEntry(userId, dateString, { name: 'Sirloin Steak with Asparagus', calories: 600, protein: 40, carbs: 10, fat: 35 }, 'dinner', true));
-      foods.push(generateFoodEntry(userId, dateString, { name: 'Casein Protein Shake', calories: 400, protein: 20, carbs: 20, fat: 10 }, 'snack', true));
-      
-      // Total: ~2000 cal, ~150g protein
+      // Create a day that hits the targets dynamically
+      const p1 = Math.round(targetProtein * 0.3);
+      const p2 = Math.round(targetProtein * 0.3);
+      const p3 = Math.round(targetProtein * 0.25);
+      const p4 = targetProtein - p1 - p2 - p3;
+
+      const c1 = Math.round(targetCalories * 0.22);
+      const c2 = Math.round(targetCalories * 0.28);
+      const c3 = Math.round(targetCalories * 0.3);
+      const c4 = targetCalories - c1 - c2 - c3;
+
+      foods.push(generateFoodEntry(userId, dateString, { name: 'High Protein Breakfast', calories: c1, protein: p1, carbs: 40, fat: 12 }, 'breakfast', true));
+      foods.push(generateFoodEntry(userId, dateString, { name: 'Lean Muscle Lunch', calories: c2, protein: p2, carbs: 35, fat: 20 }, 'lunch', true));
+      foods.push(generateFoodEntry(userId, dateString, { name: 'Performance Dinner', calories: c3, protein: p3, carbs: 10, fat: 35 }, 'dinner', true));
+      foods.push(generateFoodEntry(userId, dateString, { name: 'Recovery Snack', calories: c4, protein: p4, carbs: 20, fat: 10 }, 'snack', true));
     } else {
       // Random generation for other days
       // Breakfast (90% chance)
@@ -149,11 +155,11 @@ export function generateMockLedgers(userId: string, days: number = 60, targets?:
   return ledgers;
 }
 
-export function getMockLedgerForDate(userId: string, dateString: string, allLedgers: DayLedger[]): DayLedger | null {
+export function getMockLedgerForDate(userId, dateString, allLedgers) {
   return allLedgers.find(l => l.date === dateString) || null;
 }
 
-export function generateMockRoutines(userId: string): Routine[] {
+export function generateMockRoutines(userId) {
   return [
     {
       id: 'mock_routine_1',
