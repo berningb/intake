@@ -221,6 +221,40 @@
   cursor: not-allowed;
 }
 
+/* Manual Entry */
+.manualEntry {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-xs);
+}
+
+.manualForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.macroGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-md);
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.formGroup label {
+  font-size: 0.7rem;
+  font-weight: 800;
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-gray-500);
+}
+
 /* Loading State */
 .loadingState {
   display: flex;

@@ -18,7 +18,7 @@ interface FoodProduct {
   servingSize?: string;
 }
 
-type TabType = 'search' | 'scan';
+type TabType = 'search' | 'scan' | 'manual';
 
 interface ScanProps {
   onClose?: () => void;
@@ -41,6 +41,13 @@ export function Scan({ onClose, isModal = false }: ScanProps) {
   const [servingAmount, setServingAmount] = useState<number>(100);
   const [servingUnit, setServingUnit] = useState<string>('g');
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Manual entry state
+  const [manualName, setManualName] = useState('');
+  const [manualCalories, setManualCalories] = useState<string>('');
+  const [manualProtein, setManualProtein] = useState<string>('');
+  const [manualCarbs, setManualCarbs] = useState<string>('');
+  const [manualFat, setManualFat] = useState<string>('');
 
   // Determine food quality based on protein-to-calorie ratio
   const getFoodQuality = (calories?: number, protein?: number, fat?: number) => {
@@ -260,6 +267,34 @@ export function Scan({ onClose, isModal = false }: ScanProps) {
     setManualBarcode('');
     setServingAmount(100);
     setServingUnit('g');
+    setManualName('');
+    setManualCalories('');
+    setManualProtein('');
+    setManualCarbs('');
+    setManualFat('');
+  };
+
+  const handleManualSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!manualName.trim()) return;
+
+    addFoodEntry({
+      name: manualName.trim(),
+      finalNutrition: {
+        calories: Number(manualCalories) || 0,
+        protein: Number(manualProtein) || 0,
+        carbs: Number(manualCarbs) || 0,
+        fat: Number(manualFat) || 0,
+      },
+      portionDescription: 'Custom',
+    });
+
+    if (onClose) {
+      onClose();
+    } else {
+      clearResults();
+      setActiveTab('search');
+    }
   };
 
   const selectProduct = (p: FoodProduct) => {
@@ -299,6 +334,13 @@ export function Scan({ onClose, isModal = false }: ScanProps) {
         >
           <ScanBarcode size={18} />
           Scan
+        </button>
+        <button
+          className={`${styles.tab} ${activeTab === 'manual' ? styles.active : ''}`}
+          onClick={() => { setActiveTab('manual'); clearResults(); }}
+        >
+          <Plus size={18} />
+          Manual
         </button>
       </div>
 
@@ -356,6 +398,77 @@ export function Scan({ onClose, isModal = false }: ScanProps) {
               disabled={!manualBarcode.trim()}
             >
               <Search size={20} />
+            </button>
+          </form>
+        </div>
+      )}
+
+      {/* Manual Tab */}
+      {activeTab === 'manual' && (
+        <div className={styles.manualEntry}>
+          <form onSubmit={handleManualSubmit} className={styles.manualForm}>
+            <div className={styles.formGroup}>
+              <label>Food Name</label>
+              <input
+                type="text"
+                value={manualName}
+                onChange={(e) => setManualName(e.target.value)}
+                placeholder="e.g. Grilled Chicken"
+                className={styles.input}
+                required
+              />
+            </div>
+
+            <div className={styles.macroGrid}>
+              <div className={styles.formGroup}>
+                <label>Calories</label>
+                <input
+                  type="number"
+                  value={manualCalories}
+                  onChange={(e) => setManualCalories(e.target.value)}
+                  placeholder="0"
+                  className={styles.input}
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label>Protein (g)</label>
+                <input
+                  type="number"
+                  value={manualProtein}
+                  onChange={(e) => setManualProtein(e.target.value)}
+                  placeholder="0"
+                  className={styles.input}
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label>Carbs (g)</label>
+                <input
+                  type="number"
+                  value={manualCarbs}
+                  onChange={(e) => setManualCarbs(e.target.value)}
+                  placeholder="0"
+                  className={styles.input}
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label>Fat (g)</label>
+                <input
+                  type="number"
+                  value={manualFat}
+                  onChange={(e) => setManualFat(e.target.value)}
+                  placeholder="0"
+                  className={styles.input}
+                />
+              </div>
+            </div>
+
+            <button 
+              type="submit" 
+              className={styles.addBtn}
+              disabled={!manualName.trim()}
+            >
+              <Plus size={20} />
+              Add Food
             </button>
           </form>
         </div>
