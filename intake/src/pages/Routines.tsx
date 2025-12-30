@@ -45,6 +45,7 @@ export function Routines({ onClose, isModal = false }: { onClose?: () => void, i
   
   const [showCreate, setShowCreate] = useState(false);
   const [activeWorkout, setActiveWorkout] = useState<{routine: Routine, exercises: Exercise[]} | null>(null);
+  const [showVictory, setShowVictory] = useState<{name: string, count: number} | null>(null);
 
   // Create form state
   const [newName, setNewName] = useState('');
@@ -122,6 +123,9 @@ export function Routines({ onClose, isModal = false }: { onClose?: () => void, i
   const finishWorkout = async () => {
     if (!activeWorkout) return;
     
+    const completedCount = activeWorkout.exercises.filter(e => e.completed).length;
+    const routineName = activeWorkout.routine.name;
+
     await addActivityEntry({
       type: 'workout',
       routineId: activeWorkout.routine.id,
@@ -130,6 +134,12 @@ export function Routines({ onClose, isModal = false }: { onClose?: () => void, i
     });
     
     setActiveWorkout(null);
+    setShowVictory({ name: routineName, count: completedCount });
+    
+    // Auto-hide victory screen after 3 seconds
+    setTimeout(() => {
+      setShowVictory(null);
+    }, 4000);
   };
 
   const addExerciseField = () => {
@@ -424,6 +434,52 @@ export function Routines({ onClose, isModal = false }: { onClose?: () => void, i
                   Finish Workout
                 </button>
               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showVictory && (
+          <motion.div 
+            className={styles.victoryOverlay}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowVictory(null)}
+          >
+            <motion.div 
+              className={styles.victoryCard}
+              initial={{ scale: 0.5, rotate: -10, opacity: 0 }}
+              animate={{ scale: 1, rotate: 0, opacity: 1 }}
+              exit={{ scale: 1.5, opacity: 0 }}
+              transition={{ type: 'spring', damping: 15 }}
+            >
+              <div className={styles.victoryIcon}>
+                <motion.div
+                  animate={{ 
+                    scale: [1, 1.2, 1],
+                    rotate: [0, 10, -10, 0]
+                  }}
+                  transition={{ repeat: Infinity, duration: 2 }}
+                >
+                  <Dumbbell size={64} color="var(--color-primary)" />
+                </motion.div>
+              </div>
+              <h2 className={styles.victoryTitle}>Workout Complete!</h2>
+              <p className={styles.victoryRoutine}>{showVictory.name}</p>
+              <div className={styles.victoryStats}>
+                <div className={styles.vStat}>
+                  <span className={styles.vValue}>{showVictory.count}</span>
+                  <span className={styles.vLabel}>Exercises</span>
+                </div>
+                <div className={styles.vStat}>
+                  <span className={styles.vValue}>+100</span>
+                  <span className={styles.vLabel}>XP</span>
+                </div>
+              </div>
+              <p className={styles.victoryTagline}>Level Up! You're stronger than yesterday.</p>
+              <button className={styles.victoryBtn}>Continue</button>
             </motion.div>
           </motion.div>
         )}
