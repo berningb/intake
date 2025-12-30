@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import {
   collection,
   doc,
@@ -16,33 +16,10 @@ import {
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage, IS_MOCK_MODE } from '../config/firebase';
 import { useAuth } from './AuthContext';
-import { DayLedger, FoodEntry, ActivityEntry, NutritionInfo, FoodDecision, DecisionLevel, Routine } from '../types';
 import { format } from 'date-fns';
 import { generateMockLedgers, generateMockRoutines } from '../utils/mockData';
 
-interface LedgerContextType {
-  currentDate: Date;
-  setCurrentDate: (date: Date) => void;
-  currentLedger: DayLedger | null;
-  loading: boolean;
-  addFoodEntry: (food: Omit<FoodEntry, 'id' | 'userId' | 'date' | 'timestamp'>) => Promise<void>;
-  removeFoodEntry: (foodId: string) => Promise<void>;
-  updateFoodEntry: (foodId: string, updates: Partial<FoodEntry>) => Promise<void>;
-  addActivityEntry: (activity: Omit<ActivityEntry, 'id' | 'userId' | 'date' | 'timestamp'>) => Promise<void>;
-  removeActivityEntry: (activityId: string) => Promise<void>;
-  uploadFoodImage: (file: File) => Promise<string>;
-  evaluateFood: (nutrition: NutritionInfo) => FoodDecision;
-  getTotals: () => NutritionInfo;
-  addWin: (win: string) => Promise<void>;
-  removeWin: (win: string) => Promise<void>;
-  getLedgersForDateRange: (startDate: string, endDate: string) => Promise<Map<string, DayLedger>>;
-  routines: Routine[];
-  addRoutine: (routine: Omit<Routine, 'id' | 'userId' | 'createdAt'>) => Promise<void>;
-  deleteRoutine: (routineId: string) => Promise<void>;
-  refreshRoutines: () => Promise<void>;
-}
-
-const LedgerContext = createContext<LedgerContextType | undefined>(undefined);
+const LedgerContext = createContext(undefined);
 
 export function useLedger() {
   const context = useContext(LedgerContext);
@@ -52,19 +29,16 @@ export function useLedger() {
   return context;
 }
 
-interface LedgerProviderProps {
-  children: ReactNode;
-}
-
-export function LedgerProvider({ children }: LedgerProviderProps) {
+export function LedgerProvider({ children }) {
   const { currentUser, userData, isGuest } = useAuth();
-  const isEffectivelyMock = isGuest || IS_MOCK_MODE;
+  // A user is only in mock mode if they are a guest OR if global mock mode is on AND they aren't a real logged-in user
+  const isEffectivelyMock = isGuest || (IS_MOCK_MODE && (!currentUser || currentUser.email === 'mock@example.com'));
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [currentLedger, setCurrentLedger] = useState<DayLedger | null>(null);
+  const [currentLedger, setCurrentLedger] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [routines, setRoutines] = useState<Routine[]>([]);
-  const mockLedgersRef = useRef<DayLedger[]>([]);
-  const mockRoutinesRef = useRef<Routine[]>([]);
+  const [routines, setRoutines] = useState([]);
+  const mockLedgersRef = useRef([]);
+  const mockRoutinesRef = useRef([]);
 
   const dateString = format(currentDate, 'yyyy-MM-dd');
 
@@ -72,20 +46,25 @@ export function LedgerProvider({ children }: LedgerProviderProps) {
   useEffect(() => {
     if (isEffectivelyMock && currentUser && userData) {
       if (mockLedgersRef.current.length === 0) {
-        // Try to load from localStorage first
-        const saved = localStorage.getItem('intake_mock_ledgers');
-        if (saved) {
-          try {
-            mockLedgersRef.current = JSON.parse(saved).map((l: any) => ({
-              ...l,
-              foods: (l.foods || []).map((f: any) => ({ ...f, timestamp: new Date(f.timestamp) })),
-              activities: (l.activities || []).map((a: any) => ({ ...a, timestamp: new Date(a.timestamp) }))
-            }));
-          } catch (e) {
-            console.error('Error parsing saved mock ledgers:', e);
+        // Only load from localStorage if we are in global mock mode and NOT a guest
+        const shouldLoadFromStorage = IS_MOCK_MODE && !isGuest;
+        
+        if (shouldLoadFromStorage) {
+          const saved = localStorage.getItem('intake_mock_ledgers');
+          if (saved) {
+            try {
+              mockLedgersRef.current = JSON.parse(saved).map((l) => ({
+                ...l,
+                foods: (l.foods || []).map((f) => ({ ...f, timestamp: new Date(f.timestamp) })),
+                activities: (l.activities || []).map((a) => ({ ...a, timestamp: new Date(a.timestamp) }))
+              }));
+            } catch (e) {
+              console.error('Error parsing saved mock ledgers:', e);
+            }
           }
         }
         
+        // If nothing was loaded or we shouldn't load, generate fresh random data
         if (mockLedgersRef.current.length === 0) {
           mockLedgersRef.current = generateMockLedgers(
             currentUser.uid, 
@@ -97,16 +76,21 @@ export function LedgerProvider({ children }: LedgerProviderProps) {
           );
         }
       }
+
       if (mockRoutinesRef.current.length === 0) {
-        const saved = localStorage.getItem('intake_mock_routines');
-        if (saved) {
-          try {
-            mockRoutinesRef.current = JSON.parse(saved).map((r: any) => ({
-              ...r,
-              createdAt: new Date(r.createdAt)
-            }));
-          } catch (e) {
-            console.error('Error parsing saved mock routines:', e);
+        const shouldLoadFromStorage = IS_MOCK_MODE && !isGuest;
+        
+        if (shouldLoadFromStorage) {
+          const saved = localStorage.getItem('intake_mock_routines');
+          if (saved) {
+            try {
+              mockRoutinesRef.current = JSON.parse(saved).map((r) => ({
+                ...r,
+                createdAt: new Date(r.createdAt)
+              }));
+            } catch (e) {
+              console.error('Error parsing saved mock routines:', e);
+            }
           }
         }
         
@@ -116,15 +100,15 @@ export function LedgerProvider({ children }: LedgerProviderProps) {
         setRoutines(mockRoutinesRef.current);
       }
     }
-  }, [isEffectivelyMock, currentUser, userData]);
+  }, [isEffectivelyMock, currentUser, userData, isGuest]);
 
-  // Persistent storage for mock data
+  // Persistent storage for mock data (only for non-guest mock users)
   useEffect(() => {
-    if (isEffectivelyMock && currentUser && mockLedgersRef.current.length > 0) {
+    if (IS_MOCK_MODE && !isGuest && currentUser && mockLedgersRef.current.length > 0) {
       localStorage.setItem('intake_mock_ledgers', JSON.stringify(mockLedgersRef.current));
       localStorage.setItem('intake_mock_routines', JSON.stringify(mockRoutinesRef.current));
     }
-  }, [currentLedger, routines, isEffectivelyMock, currentUser]);
+  }, [currentLedger, routines, IS_MOCK_MODE, isGuest, currentUser]);
 
   const fetchLedger = useCallback(async () => {
     if (!currentUser) {
@@ -142,7 +126,7 @@ export function LedgerProvider({ children }: LedgerProviderProps) {
         setCurrentLedger(mockLedger);
       } else {
         // Create empty ledger for dates not in mock data
-        const newLedger: DayLedger = {
+        const newLedger = {
           id: `${currentUser.uid}_${dateString}`,
           userId: currentUser.uid,
           date: dateString,
@@ -169,10 +153,10 @@ export function LedgerProvider({ children }: LedgerProviderProps) {
         foods: data.foods || [],
         activities: data.activities || [],
         wins: data.wins || []
-      } as DayLedger);
+      });
     } else {
       // Create empty ledger for the day
-      const newLedger: DayLedger = {
+      const newLedger = {
         id: `${currentUser.uid}_${dateString}`,
         userId: currentUser.uid,
         date: dateString,
@@ -207,9 +191,9 @@ export function LedgerProvider({ children }: LedgerProviderProps) {
         where('userId', '==', currentUser.uid)
       );
       const snapshot = await getDocs(q);
-      const fetchedRoutines: Routine[] = [];
+      const fetchedRoutines = [];
       snapshot.forEach((doc) => {
-        fetchedRoutines.push({ ...doc.data(), id: doc.id } as Routine);
+        fetchedRoutines.push({ ...doc.data(), id: doc.id });
       });
       setRoutines(fetchedRoutines);
     } catch (error) {
@@ -221,10 +205,10 @@ export function LedgerProvider({ children }: LedgerProviderProps) {
     refreshRoutines();
   }, [refreshRoutines]);
 
-  async function addRoutine(routine: Omit<Routine, 'id' | 'userId' | 'createdAt'>) {
+  async function addRoutine(routine) {
     if (!currentUser) return;
 
-    const newRoutine: Routine = {
+    const newRoutine = {
       ...routine,
       id: isEffectivelyMock ? `mock_routine_${Date.now()}` : '', // Will be set by Firebase for non-guests
       userId: currentUser.uid,
@@ -241,7 +225,7 @@ export function LedgerProvider({ children }: LedgerProviderProps) {
     setRoutines([...routines, { ...newRoutine, id: docRef.id }]);
   }
 
-  async function deleteRoutine(routineId: string) {
+  async function deleteRoutine(routineId) {
     if (!currentUser) return;
 
     if (isEffectivelyMock) {
@@ -254,10 +238,10 @@ export function LedgerProvider({ children }: LedgerProviderProps) {
     setRoutines(routines.filter(r => r.id !== routineId));
   }
 
-  async function addFoodEntry(food: Omit<FoodEntry, 'id' | 'userId' | 'date' | 'timestamp'>) {
+  async function addFoodEntry(food) {
     if (!currentUser || !currentLedger) return;
 
-    const newFood: FoodEntry = {
+    const newFood = {
       ...food,
       id: `food_${Date.now()}`,
       userId: currentUser.uid,
@@ -289,7 +273,7 @@ export function LedgerProvider({ children }: LedgerProviderProps) {
     });
   }
 
-  async function removeFoodEntry(foodId: string) {
+  async function removeFoodEntry(foodId) {
     if (!currentUser || !currentLedger) return;
 
     const foodToRemove = currentLedger.foods.find(f => f.id === foodId);
@@ -318,7 +302,7 @@ export function LedgerProvider({ children }: LedgerProviderProps) {
     });
   }
 
-  async function updateFoodEntry(foodId: string, updates: Partial<FoodEntry>) {
+  async function updateFoodEntry(foodId, updates) {
     if (!currentUser || !currentLedger) return;
 
     const updatedFoods = currentLedger.foods.map(f =>
@@ -343,10 +327,10 @@ export function LedgerProvider({ children }: LedgerProviderProps) {
     });
   }
 
-  async function addActivityEntry(activity: Omit<ActivityEntry, 'id' | 'userId' | 'date' | 'timestamp'>) {
+  async function addActivityEntry(activity) {
     if (!currentUser || !currentLedger) return;
 
-    const newActivity: ActivityEntry = {
+    const newActivity = {
       ...activity,
       id: `activity_${Date.now()}`,
       userId: currentUser.uid,
@@ -376,7 +360,7 @@ export function LedgerProvider({ children }: LedgerProviderProps) {
     });
   }
 
-  async function removeActivityEntry(activityId: string) {
+  async function removeActivityEntry(activityId) {
     if (!currentUser || !currentLedger) return;
 
     const activityToRemove = currentLedger.activities.find(a => a.id === activityId);
@@ -404,7 +388,7 @@ export function LedgerProvider({ children }: LedgerProviderProps) {
     });
   }
 
-  async function uploadFoodImage(file: File): Promise<string> {
+  async function uploadFoodImage(file) {
     if (!currentUser) throw new Error('Not authenticated');
 
     // For guest or mock users, create a local blob URL
@@ -419,7 +403,7 @@ export function LedgerProvider({ children }: LedgerProviderProps) {
     return await getDownloadURL(storageRef);
   }
 
-  function getTotals(): NutritionInfo {
+  function getTotals() {
     if (!currentLedger) {
       return { calories: 0, protein: 0, carbs: 0, fat: 0 };
     }
@@ -435,7 +419,7 @@ export function LedgerProvider({ children }: LedgerProviderProps) {
     );
   }
 
-  function evaluateFood(nutrition: NutritionInfo): FoodDecision {
+  function evaluateFood(nutrition) {
     const totals = getTotals();
     const metrics = userData?.dailyMetrics || { calories: 2000 };
 
@@ -443,7 +427,7 @@ export function LedgerProvider({ children }: LedgerProviderProps) {
     const caloriesRemaining = caloriesTarget - totals.calories;
     const caloriesAfterMeal = caloriesRemaining - nutrition.calories;
 
-    let level: DecisionLevel = 'good';
+    let level = 'good';
     let message = '';
 
     const percentOfRemaining = (nutrition.calories / caloriesRemaining) * 100;
@@ -487,7 +471,7 @@ export function LedgerProvider({ children }: LedgerProviderProps) {
     };
   }
 
-  async function addWin(win: string) {
+  async function addWin(win) {
     if (!currentUser || !currentLedger) return;
 
     if (isEffectivelyMock) {
@@ -512,7 +496,7 @@ export function LedgerProvider({ children }: LedgerProviderProps) {
     });
   }
 
-  async function removeWin(win: string) {
+  async function removeWin(win) {
     if (!currentUser || !currentLedger) return;
 
     if (isEffectivelyMock) {
@@ -537,8 +521,8 @@ export function LedgerProvider({ children }: LedgerProviderProps) {
     });
   }
 
-  async function getLedgersForDateRange(startDate: string, endDate: string): Promise<Map<string, DayLedger>> {
-    const result = new Map<string, DayLedger>();
+  async function getLedgersForDateRange(startDate, endDate) {
+    const result = new Map();
     
     if (!currentUser) return result;
 
@@ -563,7 +547,7 @@ export function LedgerProvider({ children }: LedgerProviderProps) {
       
       const snapshot = await getDocs(q);
       snapshot.forEach((doc) => {
-        const data = doc.data() as DayLedger;
+        const data = doc.data();
         result.set(data.date, data);
       });
     } catch (error) {
@@ -601,4 +585,3 @@ export function LedgerProvider({ children }: LedgerProviderProps) {
     </LedgerContext.Provider>
   );
 }
-

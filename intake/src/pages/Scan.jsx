@@ -4,53 +4,33 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Camera, Search, Plus, X, Loader2, AlertCircle, ScanBarcode } from 'lucide-react';
 import { BarcodeScanner } from '../components/BarcodeScanner';
 import { useLedger } from '../context/LedgerContext';
-import styles from './Scan.module.css';
 
-interface FoodProduct {
-  barcode: string;
-  name: string;
-  brand?: string;
-  image?: string;
-  calories?: number;
-  protein?: number;
-  carbs?: number;
-  fat?: number;
-  servingSize?: string;
-}
-
-type TabType = 'search' | 'scan' | 'manual';
-
-interface ScanProps {
-  onClose?: () => void;
-  isModal?: boolean;
-}
-
-export function Scan({ onClose, isModal = false }: ScanProps) {
+export function Scan({ onClose, isModal = false }) {
   const { addFoodEntry } = useLedger();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<TabType>('search');
+  const [activeTab, setActiveTab] = useState('search');
   const [showScanner, setShowScanner] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [product, setProduct] = useState<FoodProduct | null>(null);
-  const [searchResults, setSearchResults] = useState<FoodProduct[]>([]);
+  const [error, setError] = useState(null);
+  const [product, setProduct] = useState(null);
+  const [searchResults, setSearchResults] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [manualBarcode, setManualBarcode] = useState('');
-  const [servingAmount, setServingAmount] = useState<number>(100);
-  const [servingUnit, setServingUnit] = useState<string>('g');
-  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const [servingAmount, setServingAmount] = useState(100);
+  const [servingUnit, setServingUnit] = useState('g');
+  const debounceRef = useRef(null);
 
   // Manual entry state
   const [manualName, setManualName] = useState('');
-  const [manualCalories, setManualCalories] = useState<string>('');
-  const [manualProtein, setManualProtein] = useState<string>('');
-  const [manualCarbs, setManualCarbs] = useState<string>('');
-  const [manualFat, setManualFat] = useState<string>('');
+  const [manualCalories, setManualCalories] = useState('');
+  const [manualProtein, setManualProtein] = useState('');
+  const [manualCarbs, setManualCarbs] = useState('');
+  const [manualFat, setManualFat] = useState('');
 
   // Determine food quality based on protein-to-calorie ratio
-  const getFoodQuality = (calories?: number, protein?: number, fat?: number) => {
+  const getFoodQuality = (calories, protein, fat) => {
     if (!calories || calories === 0) return 'neutral';
     
     const p = protein || 0;
@@ -76,7 +56,7 @@ export function Scan({ onClose, isModal = false }: ScanProps) {
   }, [isModal]);
 
   // Parse serving size to get base amount (usually 100g)
-  const parseServingSize = (servingSize?: string): { amount: number; unit: string } => {
+  const parseServingSize = (servingSize) => {
     if (!servingSize) return { amount: 100, unit: 'g' };
     const match = servingSize.match(/(\d+\.?\d*)\s*(g|ml|oz|piece|serving|slice)?/i);
     if (match) {
@@ -86,7 +66,7 @@ export function Scan({ onClose, isModal = false }: ScanProps) {
   };
 
   // Calculate nutrition based on serving amount
-  const getAdjustedNutrition = (product: FoodProduct) => {
+  const getAdjustedNutrition = (product) => {
     const base = parseServingSize(product.servingSize);
     const ratio = servingAmount / base.amount;
     return {
@@ -120,7 +100,7 @@ export function Scan({ onClose, isModal = false }: ScanProps) {
     };
   }, [searchQuery, activeTab]);
 
-  const searchProducts = async (query: string, pageNum: number = 1) => {
+  const searchProducts = async (query, pageNum = 1) => {
     if (!query.trim()) return;
     
     setLoading(true);
@@ -137,9 +117,9 @@ export function Scan({ onClose, isModal = false }: ScanProps) {
       const data = await response.json();
 
       if (data.products && data.products.length > 0) {
-        const results: FoodProduct[] = data.products
-          .filter((p: any) => p.product_name)
-          .map((p: any) => {
+        const results = data.products
+          .filter((p) => p.product_name)
+          .map((p) => {
             const nutrients = p.nutriments || {};
             return {
               barcode: p.code || '',
@@ -185,7 +165,7 @@ export function Scan({ onClose, isModal = false }: ScanProps) {
     }
   };
 
-  const lookupBarcode = async (barcode: string) => {
+  const lookupBarcode = async (barcode) => {
     setLoading(true);
     setError(null);
     setProduct(null);
@@ -223,19 +203,19 @@ export function Scan({ onClose, isModal = false }: ScanProps) {
     }
   };
 
-  const handleScan = (barcode: string) => {
+  const handleScan = (barcode) => {
     setShowScanner(false);
     lookupBarcode(barcode);
   };
 
-  const handleBarcodeSearch = (e: React.FormEvent) => {
+  const handleBarcodeSearch = (e) => {
     e.preventDefault();
     if (manualBarcode.trim()) {
       lookupBarcode(manualBarcode.trim());
     }
   };
 
-  const handleAddFood = (foodProduct: FoodProduct) => {
+  const handleAddFood = (foodProduct) => {
     const adjustedNutrition = getAdjustedNutrition(foodProduct);
     addFoodEntry({
       name: foodProduct.brand ? `${foodProduct.brand} ${foodProduct.name}` : foodProduct.name,
@@ -274,7 +254,7 @@ export function Scan({ onClose, isModal = false }: ScanProps) {
     setManualFat('');
   };
 
-  const handleManualSubmit = (e: React.FormEvent) => {
+  const handleManualSubmit = (e) => {
     e.preventDefault();
     if (!manualName.trim()) return;
 
@@ -297,7 +277,7 @@ export function Scan({ onClose, isModal = false }: ScanProps) {
     }
   };
 
-  const selectProduct = (p: FoodProduct) => {
+  const selectProduct = (p) => {
     setProduct(p);
     setSearchResults([]);
     const base = parseServingSize(p.servingSize);
@@ -306,37 +286,37 @@ export function Scan({ onClose, isModal = false }: ScanProps) {
   };
 
   const content = (
-    <div className={`${styles.scan} ${isModal ? styles.modal : ''}`}>
-      <div className={styles.header}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h1>Track Food</h1>
+    <div className={`max-w-[600px] w-full mx-auto flex flex-col h-full overflow-hidden ${isModal ? 'max-w-full p-0 h-full' : ''}`}>
+      <div className="mb-md pb-md border-b border-gray-800 shrink-0">
+        <div className="flex justify-between items-center">
+          <h1 className="text-[1.5rem] font-black font-display text-white uppercase tracking-[0.1em] mb-xs">Track Food</h1>
           {(isModal || onClose) && (
-            <button className={styles.closeBtn} onClick={onClose || (() => navigate(-1))}>
+            <button className="p-xs text-gray-500 bg-transparent rounded-sm transition-all duration-fast hover:bg-error/10 hover:text-error" onClick={onClose || (() => navigate(-1))}>
               <X size={24} />
             </button>
           )}
         </div>
-        <p>Search or scan to add food</p>
+        <p className="text-primary m-0 text-[0.7rem] font-display uppercase tracking-[0.2em] opacity-70">Search or scan to add food</p>
       </div>
 
       {/* Tabs */}
-      <div className={styles.tabs}>
+      <div className="flex gap-md mb-lg bg-bg-card p-[6px] rounded-md border border-gray-800 shrink-0">
         <button
-          className={`${styles.tab} ${activeTab === 'search' ? styles.active : ''}`}
+          className={`flex-1 flex items-center justify-center gap-sm p-3 text-gray-500 font-extrabold font-display uppercase tracking-[0.1em] text-[0.7rem] rounded-sm transition-colors duration-150 ease-out hover:text-white hover:bg-white/3 ${activeTab === 'search' ? 'bg-primary text-bg-deep shadow-neon' : 'bg-transparent'}`}
           onClick={() => { setActiveTab('search'); clearResults(); }}
         >
           <Search size={18} />
           Search
         </button>
         <button
-          className={`${styles.tab} ${activeTab === 'scan' ? styles.active : ''}`}
+          className={`flex-1 flex items-center justify-center gap-sm p-3 text-gray-500 font-extrabold font-display uppercase tracking-[0.1em] text-[0.7rem] rounded-sm transition-colors duration-150 ease-out hover:text-white hover:bg-white/3 ${activeTab === 'scan' ? 'bg-primary text-bg-deep shadow-neon' : 'bg-transparent'}`}
           onClick={() => { setActiveTab('scan'); clearResults(); }}
         >
           <ScanBarcode size={18} />
           Scan
         </button>
         <button
-          className={`${styles.tab} ${activeTab === 'manual' ? styles.active : ''}`}
+          className={`flex-1 flex items-center justify-center gap-sm p-3 text-gray-500 font-extrabold font-display uppercase tracking-[0.1em] text-[0.7rem] rounded-sm transition-colors duration-150 ease-out hover:text-white hover:bg-white/3 ${activeTab === 'manual' ? 'bg-primary text-bg-deep shadow-neon' : 'bg-transparent'}`}
           onClick={() => { setActiveTab('manual'); clearResults(); }}
         >
           <Plus size={18} />
@@ -346,22 +326,22 @@ export function Scan({ onClose, isModal = false }: ScanProps) {
 
       {/* Search Tab */}
       {activeTab === 'search' && !product && (
-        <div className={styles.actions}>
-          <div className={styles.searchForm}>
+        <div className="flex flex-col gap-[3rem] shrink-0">
+          <div className="flex gap-md">
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search for food..."
-              className={styles.input}
+              className="flex-1 p-[1.25rem] bg-bg-accent border border-gray-800 text-white rounded-sm font-body transition-all duration-fast focus:border-primary focus:shadow-neon outline-none"
               autoFocus
             />
             {loading ? (
-              <div className={styles.searchBtn}>
-                <Loader2 size={20} className={styles.spinner} />
+              <div className="flex items-center justify-center px-5 bg-bg-card text-primary border border-gray-800 rounded-sm transition-all duration-fast">
+                <Loader2 size={20} className="animate-spin shadow-neon" />
               </div>
             ) : (
-              <div className={styles.searchBtn}>
+              <div className="flex items-center justify-center px-5 bg-bg-card text-primary border border-gray-800 rounded-sm transition-all duration-fast">
                 <Search size={20} />
               </div>
             )}
@@ -371,30 +351,30 @@ export function Scan({ onClose, isModal = false }: ScanProps) {
 
       {/* Scan Tab */}
       {activeTab === 'scan' && !product && !loading && (
-        <div className={styles.actions}>
+        <div className="flex flex-col gap-[3rem] shrink-0">
           <button 
-            className={styles.scanBtn}
+            className="flex flex-col items-center justify-center gap-md w-full py-[4.5rem] px-xl bg-bg-accent text-primary border border-primary rounded-md text-[1rem] font-extrabold font-display uppercase tracking-[0.2em] transition-all duration-normal shadow-[inset_0_0_20px_rgba(0,242,255,0.05)] hover:bg-primary hover:text-bg-deep hover:shadow-neon-strong hover:scale-[1.02]"
             onClick={() => setShowScanner(true)}
           >
-            <Camera size={24} />
+            <Camera size={48} />
             <span>Open Camera</span>
           </button>
 
-          <div className={styles.divider}>
+          <div className="flex items-center gap-lg text-gray-700 text-[0.7rem] font-display uppercase tracking-[0.1em] before:content-[''] before:flex-1 before:height-[1px] before:bg-gray-800 after:content-[''] after:flex-1 after:height-[1px] after:bg-gray-800">
             <span>or enter barcode</span>
           </div>
 
-          <form onSubmit={handleBarcodeSearch} className={styles.searchForm}>
+          <form onSubmit={handleBarcodeSearch} className="flex gap-md">
             <input
               type="text"
               value={manualBarcode}
               onChange={(e) => setManualBarcode(e.target.value)}
               placeholder="Enter barcode number"
-              className={styles.input}
+              className="flex-1 p-[1.25rem] bg-bg-accent border border-gray-800 text-white rounded-sm font-body transition-all duration-fast focus:border-primary focus:shadow-neon outline-none"
             />
             <button 
               type="submit" 
-              className={styles.searchBtn}
+              className="flex items-center justify-center px-5 bg-bg-card text-primary border border-gray-800 rounded-sm transition-all duration-fast hover:not-disabled:border-primary hover:not-disabled:bg-primary/5 disabled:opacity-20 disabled:cursor-not-allowed"
               disabled={!manualBarcode.trim()}
             >
               <Search size={20} />
@@ -405,66 +385,66 @@ export function Scan({ onClose, isModal = false }: ScanProps) {
 
       {/* Manual Tab */}
       {activeTab === 'manual' && (
-        <div className={styles.manualEntry}>
-          <form onSubmit={handleManualSubmit} className={styles.manualForm}>
-            <div className={styles.formGroup}>
-              <label>Food Name</label>
+        <div className="flex-1 overflow-y-auto p-xs">
+          <form onSubmit={handleManualSubmit} className="flex flex-col gap-lg">
+            <div className="flex flex-col gap-xs">
+              <label className="text-[0.7rem] font-extrabold font-display uppercase tracking-[0.1em] text-gray-500">Food Name</label>
               <input
                 type="text"
                 value={manualName}
                 onChange={(e) => setManualName(e.target.value)}
                 placeholder="e.g. Grilled Chicken"
-                className={styles.input}
+                className="p-[1.25rem] bg-bg-accent border border-gray-800 text-white rounded-sm font-body transition-all duration-fast focus:border-primary focus:shadow-neon outline-none"
                 required
               />
             </div>
 
-            <div className={styles.macroGrid}>
-              <div className={styles.formGroup}>
-                <label>Calories</label>
+            <div className="grid grid-cols-2 gap-md">
+              <div className="flex flex-col gap-xs">
+                <label className="text-[0.7rem] font-extrabold font-display uppercase tracking-[0.1em] text-gray-500">Calories</label>
                 <input
                   type="number"
                   value={manualCalories}
                   onChange={(e) => setManualCalories(e.target.value)}
                   placeholder="0"
-                  className={styles.input}
+                  className="p-[1.25rem] bg-bg-accent border border-gray-800 text-white rounded-sm font-body transition-all duration-fast focus:border-primary focus:shadow-neon outline-none"
                 />
               </div>
-              <div className={styles.formGroup}>
-                <label>Protein (g)</label>
+              <div className="flex flex-col gap-xs">
+                <label className="text-[0.7rem] font-extrabold font-display uppercase tracking-[0.1em] text-gray-500">Protein (g)</label>
                 <input
                   type="number"
                   value={manualProtein}
                   onChange={(e) => setManualProtein(e.target.value)}
                   placeholder="0"
-                  className={styles.input}
+                  className="p-[1.25rem] bg-bg-accent border border-gray-800 text-white rounded-sm font-body transition-all duration-fast focus:border-primary focus:shadow-neon outline-none"
                 />
               </div>
-              <div className={styles.formGroup}>
-                <label>Carbs (g)</label>
+              <div className="flex flex-col gap-xs">
+                <label className="text-[0.7rem] font-extrabold font-display uppercase tracking-[0.1em] text-gray-500">Carbs (g)</label>
                 <input
                   type="number"
                   value={manualCarbs}
                   onChange={(e) => setManualCarbs(e.target.value)}
                   placeholder="0"
-                  className={styles.input}
+                  className="p-[1.25rem] bg-bg-accent border border-gray-800 text-white rounded-sm font-body transition-all duration-fast focus:border-primary focus:shadow-neon outline-none"
                 />
               </div>
-              <div className={styles.formGroup}>
-                <label>Fat (g)</label>
+              <div className="flex flex-col gap-xs">
+                <label className="text-[0.7rem] font-extrabold font-display uppercase tracking-[0.1em] text-gray-500">Fat (g)</label>
                 <input
                   type="number"
                   value={manualFat}
                   onChange={(e) => setManualFat(e.target.value)}
                   placeholder="0"
-                  className={styles.input}
+                  className="p-[1.25rem] bg-bg-accent border border-gray-800 text-white rounded-sm font-body transition-all duration-fast focus:border-primary focus:shadow-neon outline-none"
                 />
               </div>
             </div>
 
             <button 
               type="submit" 
-              className={styles.addBtn}
+              className="flex items-center justify-center gap-md w-full p-xl bg-secondary text-white rounded-sm font-extrabold font-display uppercase tracking-[0.2em] shadow-[0_0_20px_var(--color-secondary-glow)] transition-all duration-fast hover:bg-white hover:text-secondary hover:shadow-[0_0_30px_var(--color-secondary-glow)] disabled:opacity-30 disabled:cursor-not-allowed"
               disabled={!manualName.trim()}
             >
               <Plus size={20} />
@@ -476,18 +456,18 @@ export function Scan({ onClose, isModal = false }: ScanProps) {
 
       {/* Loading state - only show for scan tab */}
       {loading && activeTab === 'scan' && (
-        <div className={styles.loadingState}>
-          <Loader2 size={32} className={styles.spinner} />
+        <div className="flex flex-col items-center justify-center gap-md py-[4.5rem] px-[2rem] text-primary font-display uppercase tracking-[0.1em] text-[0.8rem]">
+          <Loader2 size={32} className="animate-spin shadow-neon" />
           <p>Looking up product...</p>
         </div>
       )}
 
       {/* Error state */}
       {error && !loading && (
-        <div className={styles.errorState}>
+        <div className="flex flex-col items-center justify-center gap-md py-[4.5rem] px-[2rem] text-error font-display uppercase tracking-[0.1em] text-[0.8rem]">
           <AlertCircle size={32} />
           <p>{error}</p>
-          <button className={styles.retryBtn} onClick={clearResults}>
+          <button className="flex items-center gap-sm py-[6px] px-md bg-transparent text-primary border border-primary rounded-xs font-extrabold font-display text-[0.65rem] uppercase tracking-[0.1em] transition-all duration-fast hover:bg-primary hover:text-bg-deep hover:shadow-neon" onClick={clearResults}>
             Try Again
           </button>
         </div>
@@ -497,7 +477,7 @@ export function Scan({ onClose, isModal = false }: ScanProps) {
       <AnimatePresence mode="wait">
         {searchResults.length > 0 && !product && (
           <motion.div 
-            className={styles.resultsList}
+            className="flex flex-col gap-md flex-1 overflow-y-auto overflow-x-hidden p-xs mt-lg scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-transparent"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -507,35 +487,39 @@ export function Scan({ onClose, isModal = false }: ScanProps) {
               return (
                 <motion.button
                   key={`${item.barcode}-${index}`}
-                  className={`${styles.resultItem} ${styles[quality]}`}
+                  className={`flex items-center justify-between gap-lg p-lg bg-bg-card border border-gray-800 rounded-md text-left transition-all duration-fast cursor-pointer relative overflow-hidden min-h-[80px] hover:border-primary hover:bg-primary/5 hover:translate-x-[6px] hover:shadow-[0_5px_15px_rgba(0,0,0,0.3)] before:content-[''] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-[4px] before:transition-all before:duration-fast ${
+                    quality === 'good' ? 'before:bg-success' :
+                    quality === 'caution' ? 'before:bg-warning' :
+                    quality === 'bad' ? 'before:bg-error' : 'before:bg-gray-700'
+                  }`}
                   onClick={() => selectProduct(item)}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: (index % 20) * 0.03 }}
                 >
-                  <div className={styles.resultMain}>
+                  <div className="flex items-center gap-lg flex-1 min-w-0">
                     {item.image ? (
-                      <img src={item.image} alt={item.name} className={styles.resultImage} />
+                      <img src={item.image} alt={item.name} className="w-[56px] h-[56px] object-contain rounded-sm bg-white shrink-0 border border-gray-800" />
                     ) : (
-                      <div className={styles.resultImagePlaceholder}>
+                      <div className="w-[56px] h-[56px] flex items-center justify-center bg-bg-accent rounded-sm text-gray-700 shrink-0 border border-gray-800">
                         <Camera size={20} />
                       </div>
                     )}
-                    <div className={styles.resultInfo}>
-                      <span className={styles.resultName}>{item.name}</span>
-                      {item.brand && <span className={styles.resultBrand}>{item.brand}</span>}
-                      <div className={styles.resultNutritionMini}>
+                    <div className="flex-1 min-w-0 flex flex-col gap-[2px]">
+                      <span className="font-extrabold text-white text-[0.95rem] font-display truncate uppercase tracking-[0.05em]">{item.name}</span>
+                      {item.brand && <span className="text-[0.7rem] text-primary truncate opacity-80 uppercase tracking-[0.05em] mb-[2px]">{item.brand}</span>}
+                      <div className="flex gap-md text-[0.7rem] text-gray-500 font-display font-semibold uppercase tracking-[0.05em]">
                         <span>{Math.round(item.protein || 0)}g P</span>
                         <span>{Math.round(item.carbs || 0)}g C</span>
                         <span>{Math.round(item.fat || 0)}g F</span>
                       </div>
                     </div>
                   </div>
-                  <div className={styles.resultMeta}>
-                    <span className={styles.resultCalories}>
-                      {Math.round(item.calories || 0)} <small>CAL</small>
+                  <div className="flex items-center gap-lg shrink-0">
+                    <span className="text-[1.1rem] font-black text-white font-display whitespace-nowrap text-right">
+                      {Math.round(item.calories || 0)} <small className="text-[0.65rem] text-gray-500 uppercase block leading-none">CAL</small>
                     </span>
-                    <Plus className={styles.addIcon} size={20} />
+                    <Plus className="text-primary opacity-30 transition-all duration-fast group-hover:opacity-100 group-hover:scale-[1.2] group-hover:rotate-90" size={20} />
                   </div>
                 </motion.button>
               );
@@ -543,12 +527,12 @@ export function Scan({ onClose, isModal = false }: ScanProps) {
             
             {hasMore && (
               <button 
-                className={styles.loadMoreBtn} 
+                className="w-full p-md bg-bg-card border border-gray-800 text-primary rounded-sm font-display font-extrabold uppercase tracking-[0.1em] text-[0.7rem] mt-xl mb-[4.5rem] transition-all duration-fast flex items-center justify-center hover:not-disabled:bg-primary hover:not-disabled:text-bg-deep hover:not-disabled:shadow-neon disabled:opacity-50 disabled:cursor-not-allowed" 
                 onClick={loadMore}
                 disabled={loading}
               >
                 {loading ? (
-                  <Loader2 size={20} className={styles.spinner} />
+                  <Loader2 size={20} className="animate-spin shadow-neon" />
                 ) : (
                   'Load More Results'
                 )}
@@ -562,78 +546,78 @@ export function Scan({ onClose, isModal = false }: ScanProps) {
       <AnimatePresence>
         {product && !loading && (
           <motion.div
-            className={styles.productCard}
+            className="bg-bg-card rounded-md border border-gray-800 p-xl relative shadow-card overflow-y-auto flex-1"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
           >
-            <button className={styles.clearBtn} onClick={clearResults}>
+            <button className="absolute top-md right-md p-xs bg-bg-accent text-gray-500 rounded-sm transition-all duration-fast hover:text-error hover:bg-error/10" onClick={clearResults}>
               <X size={20} />
             </button>
 
-            <div className={styles.productHeader}>
+            <div className="flex gap-xl mb-xl pb-lg border-b border-gray-800">
               {product.image ? (
                 <img 
                   src={product.image} 
                   alt={product.name}
-                  className={styles.productImage}
+                  className="w-[100px] h-[100px] object-contain rounded-sm bg-white border border-gray-800"
                 />
               ) : (
-                <div className={styles.productImagePlaceholder}>
+                <div className="w-[100px] h-[100px] flex items-center justify-center bg-bg-accent rounded-sm text-gray-700 shrink-0 border border-gray-800">
                   <Camera size={24} />
                 </div>
               )}
-              <div className={styles.productInfo}>
-                <h3>{product.name}</h3>
-                {product.brand && <p className={styles.brand}>{product.brand}</p>}
-                <p className={styles.serving}>Nutrition per {product.servingSize || '100g'}</p>
+              <div className="productInfo">
+                <h3 className="text-[1.25rem] font-black mb-xs text-white font-display uppercase tracking-[0.05em]">{product.name}</h3>
+                {product.brand && <p className="text-primary text-[0.75rem] font-display uppercase tracking-[0.1em] m-0 mb-sm opacity-80">{product.brand}</p>}
+                <p className="text-gray-500 text-[0.8rem] m-0">Nutrition per {product.servingSize || '100g'}</p>
               </div>
             </div>
 
             {/* Serving Size Input */}
-            <div className={styles.servingInput}>
-              <label>How much are you having?</label>
-              <div className={styles.servingRow}>
+            <div className="mb-xl">
+              <label className="block text-[0.7rem] font-extrabold font-display uppercase tracking-[0.1em] text-gray-500 mb-sm">How much are you having?</label>
+              <div className="flex items-center gap-md">
                 <input
                   type="number"
                   value={servingAmount}
                   onChange={(e) => setServingAmount(Math.max(0, Number(e.target.value)))}
                   min={0}
-                  className={styles.servingNumber}
+                  className="w-[120px] p-4 text-[1.5rem] font-black text-center border border-gray-800 rounded-sm bg-bg-accent text-white font-display focus:border-primary focus:shadow-neon outline-none"
                 />
-                <span className={styles.servingUnit}>{servingUnit}</span>
+                <span className="text-[0.9rem] text-gray-400 font-extrabold font-display uppercase">{servingUnit}</span>
               </div>
             </div>
 
             {/* Calculated Nutrition */}
-            <div className={styles.nutrition}>
-              <div className={styles.nutritionItem}>
-                <span className={styles.nutritionValue}>
+            <div className="grid grid-cols-4 gap-md p-xl bg-bg-accent rounded-sm mb-[3rem] border border-gray-800">
+              <div className="flex flex-col items-center text-center">
+                <span className="font-black text-[1.25rem] text-white font-display">
                   {getAdjustedNutrition(product).calories}
                 </span>
-                <span className={styles.nutritionLabel}>CAL</span>
+                <span className="text-[0.6rem] text-gray-500 uppercase font-display tracking-[0.1em] mt-1">CAL</span>
               </div>
-              <div className={styles.nutritionItem}>
-                <span className={styles.nutritionValue}>
+              <div className="flex flex-col items-center text-center">
+                <span className="font-black text-[1.25rem] text-white font-display">
                   {getAdjustedNutrition(product).protein}g
                 </span>
-                <span className={styles.nutritionLabel}>protein</span>
+                <span className="text-[0.6rem] text-gray-500 uppercase font-display tracking-[0.1em] mt-1">protein</span>
               </div>
-              <div className={styles.nutritionItem}>
-                <span className={styles.nutritionValue}>
+              <div className="flex flex-col items-center text-center">
+                <span className="font-black text-[1.25rem] text-white font-display">
                   {getAdjustedNutrition(product).carbs}g
                 </span>
-                <span className={styles.nutritionLabel}>carbs</span>
+                <span className="text-[0.6rem] text-gray-500 uppercase font-display tracking-[0.1em] mt-1">carbs</span>
               </div>
-              <div className={styles.nutritionItem}>
-                <span className={styles.nutritionValue}>
+              <div className="flex flex-col items-center text-center">
+                <span className="font-black text-[1.25rem] text-white font-display">
                   {getAdjustedNutrition(product).fat}g
                 </span>
-                <span className={styles.nutritionLabel}>fat</span>
+                <span className="text-[0.6rem] text-gray-500 uppercase font-display tracking-[0.1em] mt-1">fat</span>
               </div>
             </div>
 
-            <button className={styles.addBtn} onClick={() => handleAddFood(product)}>
+            <button className="flex items-center justify-center gap-md w-full p-xl bg-secondary text-white rounded-sm font-extrabold font-display uppercase tracking-[0.2em] shadow-[0_0_20px_var(--color-secondary-glow)] transition-all duration-fast hover:bg-white hover:text-secondary hover:shadow-[0_0_30px_var(--color-secondary-glow)]" onClick={() => handleAddFood(product)}>
               <Plus size={20} />
               Add to Today
             </button>
@@ -653,9 +637,9 @@ export function Scan({ onClose, isModal = false }: ScanProps) {
 
   if (isModal) {
     return (
-      <div className={styles.overlay} onClick={onClose}>
+      <div className="fixed inset-0 bg-[#050507]/85 backdrop-blur-[8px] z-[1000] flex justify-end" onClick={onClose}>
         <motion.div 
-          className={styles.modalContainer} 
+          className="w-full max-w-[600px] h-screen bg-bg-deep overflow-hidden shadow-[-10px_0_50px_rgba(0,0,0,0.5)] border-l border-gray-800 p-xl flex flex-col" 
           onClick={e => e.stopPropagation()}
           initial={{ x: '100%' }}
           animate={{ x: 0 }}

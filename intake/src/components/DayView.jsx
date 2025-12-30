@@ -5,12 +5,9 @@ import { ChevronLeft, ChevronRight, Flame, Beef, Wheat, Droplets, Plus, Trash2, 
 import { useAuth } from '../context/AuthContext';
 import { useLedger } from '../context/LedgerContext';
 import { useNavigate } from 'react-router-dom';
-import styles from './DayView.module.css';
-
-import { DayViewProps } from '../types';
 import { Scan } from '../pages/Scan';
 
-export function DayView({ onClose, isModal = false }: DayViewProps) {
+export function DayView({ onClose, isModal = false }) {
   const { userData } = useAuth();
   const { currentDate, setCurrentDate, currentLedger, loading, getTotals, removeFoodEntry, removeActivityEntry } = useLedger();
   const navigate = useNavigate();
@@ -31,7 +28,7 @@ export function DayView({ onClose, isModal = false }: DayViewProps) {
   const metrics = userData?.dailyMetrics || { calories: 2000 };
 
   // Determine food quality based on protein-to-calorie ratio and nutritional balance
-  const getFoodQuality = (nutrition: { calories: number; protein: number; carbs: number; fat: number }) => {
+  const getFoodQuality = (nutrition) => {
     if (!nutrition.calories || nutrition.calories === 0) return 'neutral';
     
     const proteinCalRatio = (nutrition.protein * 4) / nutrition.calories; // Protein cals / total cals
@@ -49,7 +46,7 @@ export function DayView({ onClose, isModal = false }: DayViewProps) {
     return 'neutral';
   };
 
-  const changeDate = (delta: number) => {
+  const changeDate = (delta) => {
     const newDate = new Date(currentDate);
     newDate.setDate(newDate.getDate() + delta);
     setCurrentDate(newDate);
@@ -87,7 +84,7 @@ export function DayView({ onClose, isModal = false }: DayViewProps) {
 
   const dayStatus = getDayStatus();
 
-  const getMacroPercent = (current: number, target?: number) => {
+  const getMacroPercent = (current, target) => {
     if (!target) return 0;
     return Math.min(100, (current / target) * 100);
   };
@@ -129,34 +126,34 @@ export function DayView({ onClose, isModal = false }: DayViewProps) {
   const content = (
     <motion.div 
       key="content"
-      className={`${styles.dayView} ${isModal ? styles.modal : ''}`}
+      className={`max-w-[900px] w-full mx-auto ${isModal ? 'max-w-[700px] p-xl' : ''}`}
       variants={containerVariants}
       initial="hidden"
       animate="show"
       exit="exit"
     >
-      <motion.header className={styles.header} variants={itemVariants}>
-        <div className={styles.headerTop}>
-          <div className={styles.greeting}>
-            <h1>{format(currentDate, 'MMMM d, yyyy')}</h1>
-            <p className={styles.tagline}>
+      <motion.header className="mb-md pb-md border-b border-gray-800" variants={itemVariants}>
+        <div className="flex justify-between items-start mb-sm">
+          <div className="greeting">
+            <h1 className="text-[1.5rem] font-black mb-xs font-display text-white uppercase tracking-[0.1em]">{format(currentDate, 'MMMM d, yyyy')}</h1>
+            <p className="text-primary m-0 text-[0.7rem] font-display uppercase tracking-[0.2em] opacity-70">
               {isToday ? "Today's Progress" : "Viewing Past Performance"}
             </p>
           </div>
           {onClose && (
-            <button onClick={onClose} className={styles.closeBtn}>
+            <button onClick={onClose} className="p-xs text-gray-500 bg-transparent rounded-sm transition-all duration-fast hover:bg-error/10 hover:text-error">
               <X size={24} />
             </button>
           )}
         </div>
         
-        <div className={styles.dateNav}>
-          <button onClick={() => changeDate(-1)} className={styles.dateBtn}>
+        <div className="flex items-center gap-xs bg-bg-accent p-[4px] rounded-sm border border-gray-800 w-fit">
+          <button onClick={() => changeDate(-1)} className="p-xs rounded-xs bg-transparent text-gray-500 flex items-center justify-center transition-all duration-fast hover:bg-gray-800 hover:text-primary">
             <ChevronLeft size={20} />
           </button>
-          <div className={styles.datePickerContainer}>
+          <div className="relative flex items-center">
             <button 
-              className={styles.dateDisplay}
+              className="font-bold min-w-[140px] text-center text-[0.75rem] text-white font-display bg-transparent py-xs px-sm uppercase tracking-[0.05em] hover:bg-white/5"
               onClick={() => document.getElementById('day-view-date-picker')?.showPicker()}
             >
               {isToday ? 'Today' : format(currentDate, 'EEE, MMM d')}
@@ -164,7 +161,7 @@ export function DayView({ onClose, isModal = false }: DayViewProps) {
             <input 
               type="date" 
               id="day-view-date-picker"
-              className={styles.hiddenDatePicker}
+              className="absolute opacity-0 w-0 h-0 pointer-events-none"
               value={format(currentDate, 'yyyy-MM-dd')}
               max={format(new Date(), 'yyyy-MM-dd')}
               onChange={(e) => {
@@ -176,7 +173,7 @@ export function DayView({ onClose, isModal = false }: DayViewProps) {
           </div>
           <button 
             onClick={() => changeDate(1)} 
-            className={styles.dateBtn}
+            className="p-xs rounded-xs bg-transparent text-gray-500 flex items-center justify-center transition-all duration-fast hover:bg-gray-800 hover:text-primary disabled:opacity-10 disabled:cursor-not-allowed"
             disabled={isToday}
           >
             <ChevronRight size={20} />
@@ -184,10 +181,10 @@ export function DayView({ onClose, isModal = false }: DayViewProps) {
         </div>
       </motion.header>
 
-      <motion.section className={styles.summaryCard} variants={itemVariants}>
-        <div className={styles.calorieMain}>
-          <div className={styles.calorieRing}>
-            <svg viewBox="0 0 100 100" className={styles.ringChart}>
+      <motion.section className="bg-bg-card rounded-md p-lg border border-gray-800 mb-md relative overflow-hidden" variants={itemVariants}>
+        <div className="flex items-center gap-2xl mb-lg pb-lg border-b border-bg-accent max-md:flex-col max-md:gap-xl">
+          <div className="relative w-[120px] h-[120px] shrink-0">
+            <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
               <circle
                 cx="50"
                 cy="50"
@@ -205,101 +202,106 @@ export function DayView({ onClose, isModal = false }: DayViewProps) {
                 strokeWidth="8"
                 strokeLinecap="round"
                 strokeDasharray={`${caloriePercent * 2.64} 264`}
-                className={styles.ringProgress}
+                className="transition-[stroke-dasharray] duration-800 ease-[cubic-bezier(0.4,0,0.2,1)] drop-shadow-[0_0_5px_var(--color-primary-glow)]"
               />
             </svg>
-            <div className={styles.calorieText}>
-              <span className={styles.calorieValue}>{Math.round(totals.calories)}</span>
-              <span className={styles.calorieLabel}>/ {metrics.calories || '---'} CAL</span>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="font-display text-[2rem] font-black text-white leading-none shadow-[0_0_15px_rgba(255,255,255,0.3)]">{Math.round(totals.calories)}</span>
+              <span className="text-[0.6rem] font-display uppercase tracking-[0.1em] text-gray-500 mt-[2px]">/ {metrics.calories || '---'} CAL</span>
             </div>
           </div>
           
-          <div className={styles.calorieInfo}>
-            <Flame className={styles.flameIcon} />
+          <div className="flex flex-1 items-center gap-md max-md:w-full max-md:justify-center">
+            <Flame className="w-[32px] h-[32px] text-primary drop-shadow-[0_0_5px_var(--color-primary-glow)]" />
             <div>
-              <span className={styles.remaining}>
+              <span className="block font-display text-[1.5rem] font-black text-white leading-[1.1] tracking-[-0.02em]">
                 {metrics.calories ? Math.max(0, metrics.calories - totals.calories) : '---'}
               </span>
-              <span className={styles.remainingLabel}>calories remaining</span>
+              <span className="block font-display text-[0.6rem] uppercase tracking-[0.2em] text-gray-500">calories remaining</span>
             </div>
           </div>
           
           {dayStatus.icon && (
-            <div className={`${styles.dayStatus} ${styles[dayStatus.status]}`}>
-              <div className={styles.statusHeader}>
+            <div className={`flex flex-col gap-xs p-md rounded-sm ml-auto min-w-[200px] border border-white/5 bg-white/2 max-md:ml-0 max-md:w-full ${
+              dayStatus.status === 'good' ? 'text-success border-success/20 bg-success/5' :
+              dayStatus.status === 'caution' ? 'text-warning border-warning/20 bg-warning/5' :
+              dayStatus.status === 'over' ? 'text-error border-error/20 bg-error/5' :
+              dayStatus.status === 'under' ? 'text-primary border-primary/20 bg-primary/5' : ''
+            }`}>
+              <div className="flex items-center gap-sm font-display font-black text-[0.75rem] uppercase tracking-[0.1em]">
                 <dayStatus.icon size={20} />
                 <span>{dayStatus.label}</span>
               </div>
-              <p className={styles.statusDescription}>{dayStatus.description}</p>
+              <p className="text-[0.7rem] m-0 opacity-60 leading-[1.5] text-gray-300">{dayStatus.description}</p>
             </div>
           )}
         </div>
 
-        <div className={styles.macros}>
-          <div className={styles.macroItem}>
-            <div className={styles.macroHeader}>
+        <div className="grid grid-cols-3 gap-xl max-md:grid-cols-1 max-md:gap-md">
+          <div className="flex flex-col gap-sm">
+            <div className="flex justify-between items-center text-gray-300 font-display text-[0.6rem] font-bold uppercase tracking-[0.1em]">
               <Beef size={16} />
               <span>Protein</span>
             </div>
-            <div className={styles.macroBar}>
+            <div className="h-[6px] bg-bg-accent rounded-xs overflow-hidden border border-gray-800">
               <div 
-                className={styles.macroProgress} 
+                className="h-full rounded-none transition-[width] duration-1000 ease-[cubic-bezier(0.4,0,0.2,1)] relative after:content-[''] after:absolute after:top-0 after:right-0 after:w-[2px] after:h-full after:bg-white/50 after:shadow-[0_0_5px_white]" 
                 style={{ 
                   width: `${getMacroPercent(totals.protein, metrics.protein)}%`,
                   background: 'var(--color-primary)'
                 }} 
               />
             </div>
-            <span className={styles.macroValue}>
+            <span className="text-[0.6rem] text-gray-500 font-display mt-[2px]">
               {Math.round(totals.protein)}g / {metrics.protein || '---'}g
             </span>
           </div>
           
-          <div className={styles.macroItem}>
-            <div className={styles.macroHeader}>
+          <div className="flex flex-col gap-sm">
+            <div className="flex justify-between items-center text-gray-300 font-display text-[0.6rem] font-bold uppercase tracking-[0.1em]">
               <Wheat size={16} />
               <span>Carbs</span>
             </div>
-            <div className={styles.macroBar}>
+            <div className="h-[6px] bg-bg-accent rounded-xs overflow-hidden border border-gray-800">
               <div 
-                className={styles.macroProgress}
+                className="h-full rounded-none transition-[width] duration-1000 ease-[cubic-bezier(0.4,0,0.2,1)] relative after:content-[''] after:absolute after:top-0 after:right-0 after:w-[2px] after:h-full after:bg-white/50 after:shadow-[0_0_5px_white]"
                 style={{ 
                   width: `${getMacroPercent(totals.carbs, metrics.carbs)}%`,
                   background: 'var(--color-secondary)'
                 }} 
               />
             </div>
-            <span className={styles.macroValue}>
+            <span className="text-[0.6rem] text-gray-500 font-display mt-[2px]">
               {Math.round(totals.carbs)}g / {metrics.carbs || '---'}g
             </span>
           </div>
           
-          <div className={styles.macroItem}>
-            <div className={styles.macroHeader}>
+          <div className="flex flex-col gap-sm">
+            <div className="flex justify-between items-center text-gray-300 font-display text-[0.6rem] font-bold uppercase tracking-[0.1em]">
               <Droplets size={16} />
               <span>Fat</span>
             </div>
-            <div className={styles.macroBar}>
+            <div className="h-[6px] bg-bg-accent rounded-xs overflow-hidden border border-gray-800">
               <div 
-                className={styles.macroProgress}
+                className="h-full rounded-none transition-[width] duration-1000 ease-[cubic-bezier(0.4,0,0.2,1)] relative after:content-[''] after:absolute after:top-0 after:right-0 after:w-[2px] after:h-full after:bg-white/50 after:shadow-[0_0_5px_white]"
                 style={{ 
                   width: `${getMacroPercent(totals.fat, metrics.fat)}%`,
                   background: 'var(--color-warning)'
                 }} 
               />
             </div>
-            <span className={styles.macroValue}>
+            <span className="text-[0.6rem] text-gray-500 font-display mt-[2px]">
               {Math.round(totals.fat)}g / {metrics.fat || '---'}g
             </span>
           </div>
         </div>
       </motion.section>
 
-      <motion.section className={styles.ledgerSection} variants={itemVariants}>
-        <div className={styles.sectionHeader}>
-          <h2>Meals</h2>
-          <div className={styles.headerActions}>
-            <button className={styles.addBtn} onClick={() => setShowScan(true)}>
+      <motion.section className="bg-bg-card rounded-md p-xl border border-gray-800 mb-lg" variants={itemVariants}>
+        <div className="flex justify-between items-center mb-md">
+          <h2 className="text-[0.9rem] font-black text-white font-display uppercase tracking-[0.1em]">Meals</h2>
+          <div className="flex gap-sm">
+            <button className="flex items-center gap-sm py-[6px] px-md bg-transparent text-primary border border-primary rounded-xs font-extrabold font-display text-[0.65rem] uppercase tracking-[0.1em] transition-all duration-fast hover:bg-primary hover:text-bg-deep hover:shadow-neon" onClick={() => setShowScan(true)}>
               <Plus size={18} />
               Search & Scan
             </button>
@@ -307,42 +309,46 @@ export function DayView({ onClose, isModal = false }: DayViewProps) {
         </div>
 
         {(!currentLedger?.foods || currentLedger.foods.length === 0) ? (
-          <div className={styles.emptyState}>
-            <p>No meals logged yet</p>
+          <div className="text-center p-xl text-gray-500 font-display text-[0.75rem] uppercase tracking-[0.1em]">
+            <p className="mb-md">No meals logged yet</p>
             <button className="btn-primary" onClick={() => setShowScan(true)}>
               Log your first meal
             </button>
           </div>
         ) : (
-          <div className={styles.foodList}>
+          <div className="flex flex-col gap-md max-h-[500px] overflow-y-auto pr-xs scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-transparent">
             {currentLedger.foods.map((food, index) => {
               const nutrition = food.finalNutrition || { calories: 0, protein: 0, carbs: 0, fat: 0 };
               const quality = getFoodQuality(nutrition);
               return (
                 <motion.div 
                   key={food.id} 
-                  className={`${styles.foodItem} ${styles[quality]}`}
+                  className={`flex items-center gap-md p-md bg-bg-card rounded-sm transition-all duration-fast border border-gray-800 relative hover:border-primary hover:bg-primary/3 hover:translate-x-1 before:content-[''] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-[3px] before:bg-gray-700 ${
+                    quality === 'good' ? 'before:bg-success' :
+                    quality === 'caution' ? 'before:bg-warning' :
+                    quality === 'bad' ? 'before:bg-error' : ''
+                  }`}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.05 }}
                 >
                   {food.imageUrl && (
-                    <img src={food.imageUrl} alt={food.name} className={styles.foodImage} />
+                    <img src={food.imageUrl} alt={food.name} className="w-[48px] h-[48px] rounded-xs object-cover shrink-0 border border-gray-800" />
                   )}
-                  <div className={styles.foodInfo}>
-                    <span className={styles.foodName}>{food.name}</span>
-                    <span className={styles.foodMeta}>
+                  <div className="flex-1 min-w-0">
+                    <span className="block font-bold text-white font-display text-[0.85rem] mb-[2px] uppercase tracking-[0.05em]">{food.name}</span>
+                    <span className="text-[0.65rem] text-gray-500 font-display uppercase tracking-[0.05em]">
                       {food.portionDescription && `${food.portionDescription} • `}
                       {nutrition.calories} CAL
                     </span>
                   </div>
-                  <div className={styles.foodNutrition}>
-                    <span>{nutrition.protein}g P</span>
-                    <span>{nutrition.carbs}g C</span>
-                    <span>{nutrition.fat}g F</span>
+                  <div className="flex gap-md font-display font-extrabold text-[0.75rem] text-primary max-md:hidden">
+                    <span className="whitespace-nowrap">{nutrition.protein}g P</span>
+                    <span className="whitespace-nowrap">{nutrition.carbs}g C</span>
+                    <span className="whitespace-nowrap">{nutrition.fat}g F</span>
                   </div>
                   <button 
-                    className={styles.deleteBtn}
+                    className="p-xs bg-transparent text-gray-700 rounded-xs opacity-30 transition-all duration-fast hover:opacity-100 hover:text-error hover:bg-error/10"
                     onClick={() => removeFoodEntry(food.id)}
                   >
                     <Trash2 size={16} />
@@ -355,28 +361,28 @@ export function DayView({ onClose, isModal = false }: DayViewProps) {
       </motion.section>
 
       {currentLedger?.activities && currentLedger.activities.length > 0 && (
-        <motion.section className={styles.ledgerSection} variants={itemVariants}>
-          <div className={styles.sectionHeader}>
-            <h2>Activities</h2>
+        <motion.section className="bg-bg-card rounded-md p-xl border border-gray-800 mb-lg" variants={itemVariants}>
+          <div className="flex justify-between items-center mb-md">
+            <h2 className="text-[0.9rem] font-black text-white font-display uppercase tracking-[0.1em]">Activities</h2>
           </div>
-          <div className={styles.foodList}>
+          <div className="flex flex-col gap-md">
             {currentLedger.activities.map((activity, index) => (
               <motion.div 
                 key={activity.id} 
-                className={styles.foodItem}
+                className="flex items-center gap-md p-md bg-bg-card rounded-sm transition-all duration-fast border border-gray-800 relative hover:border-primary hover:bg-primary/3 hover:translate-x-1"
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.05 }}
               >
-                <div className={styles.foodInfo}>
-                  <span className={styles.foodName}>{activity.routineName || activity.type}</span>
-                  <span className={styles.foodMeta}>
+                <div className="flex-1 min-w-0">
+                  <span className="block font-bold text-white font-display text-[0.85rem] mb-[2px] uppercase tracking-[0.05em]">{activity.routineName || activity.type}</span>
+                  <span className="text-[0.65rem] text-gray-500 font-display uppercase tracking-[0.05em]">
                     {activity.exercises.filter(e => e.completed).length}/{activity.exercises.length} exercises
                     {activity.duration && ` • ${activity.duration} min`}
                   </span>
                 </div>
                 <button 
-                  className={styles.deleteBtn}
+                  className="p-xs bg-transparent text-gray-700 rounded-xs opacity-30 transition-all duration-fast hover:opacity-100 hover:text-error hover:bg-error/10"
                   onClick={() => removeActivityEntry(activity.id)}
                 >
                   <Trash2 size={16} />
@@ -403,14 +409,14 @@ export function DayView({ onClose, isModal = false }: DayViewProps) {
       {loading ? (
         <motion.div 
           key="loading"
-          className={styles.loading}
+          className="flex flex-col gap-lg"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.1 }}
         >
-          <div className={styles.skeleton} style={{ width: '200px', height: '32px' }} />
-          <div className={styles.skeleton} style={{ width: '100%', height: '200px', marginTop: '24px' }} />
+          <div className="bg-[linear-gradient(90deg,var(--color-bg-accent)_25%,var(--color-bg-card)_50%,var(--color-bg-accent)_75%)] bg-[length:200%_100%] animate-[skeleton-loading_1.5s_infinite] rounded-md w-[200px] h-[32px]" />
+          <div className="bg-[linear-gradient(90deg,var(--color-bg-accent)_25%,var(--color-bg-card)_50%,var(--color-bg-accent)_75%)] bg-[length:200%_100%] animate-[skeleton-loading_1.5s_infinite] rounded-md w-full h-[200px] mt-[24px]" />
         </motion.div>
       ) : content}
     </AnimatePresence>
@@ -418,8 +424,8 @@ export function DayView({ onClose, isModal = false }: DayViewProps) {
 
   if (isModal) {
     return (
-      <div className={styles.overlay} onClick={onClose}>
-        <div className={styles.modalContainer} onClick={e => e.stopPropagation()}>
+      <div className="fixed inset-0 bg-black/80 backdrop-blur-[8px] z-[1000] flex justify-end" onClick={onClose}>
+        <div className="w-full max-w-[700px] h-full bg-bg-deep overflow-y-auto shadow-[-10px_0_50px_rgba(0,0,0,0.5)] border-l border-gray-800" onClick={e => e.stopPropagation()}>
           {mainContent}
         </div>
       </div>

@@ -6,41 +6,20 @@ import { Login } from './pages/Login';
 import { Onboarding } from './pages/Onboarding';
 import { Dashboard } from './pages/Dashboard';
 import { Profile } from './pages/Profile';
-import { History } from './pages/History';
 import { Routines } from './pages/Routines';
 import { Scan } from './pages/Scan';
 
-function PrivateRoute({ children }: { children: React.ReactNode }) {
+function PrivateRoute({ children }) {
   const { currentUser, loading } = useAuth();
 
   if (loading) {
     return (
-      <div style={{ 
-        minHeight: '100vh', 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center',
-        background: 'var(--color-bg-deep)'
-      }}>
-        <div style={{ textAlign: 'center' }}>
-          <h1 style={{ 
-            fontFamily: 'var(--font-display)', 
-            color: 'var(--color-primary)',
-            fontSize: '2.5rem',
-            marginBottom: '1rem',
-            textTransform: 'uppercase',
-            letterSpacing: '0.2em',
-            textShadow: '0 0 20px var(--color-primary-glow)'
-          }}>
+      <div className="min-h-screen flex items-center justify-center bg-bg-deep">
+        <div className="text-center">
+          <h1 className="font-display text-primary text-[2.5rem] mb-md uppercase tracking-[0.2em] shadow-primary-glow">
             intake
           </h1>
-          <p style={{ 
-            color: 'var(--color-gray-500)',
-            fontFamily: 'var(--font-display)',
-            fontSize: '0.8rem',
-            textTransform: 'uppercase',
-            letterSpacing: '0.1em'
-          }}>
+          <p className="text-gray-500 font-display text-[0.8rem] uppercase tracking-[0.1em]">
             Initializing HUD...
           </p>
         </div>
@@ -55,7 +34,7 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-function OnboardingCheck({ children }: { children: React.ReactNode }) {
+function OnboardingCheck({ children }) {
   const { userData, loading } = useAuth();
 
   if (loading) {
@@ -70,7 +49,7 @@ function OnboardingCheck({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-function PublicRoute({ children }: { children: React.ReactNode }) {
+function PublicRoute({ children }) {
   const { currentUser, loading } = useAuth();
 
   if (loading) {

@@ -1,22 +1,17 @@
 import { useMemo, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { format, subDays, eachDayOfInterval } from 'date-fns';
-import { Flame, Beef, Wheat, Droplets, TrendingUp, TrendingDown, Target } from 'lucide-react';
+import { Flame, Beef, Wheat, Droplets, Target } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLedger } from '../context/LedgerContext';
-import { DayLedger } from '../types';
-import styles from './Overview.module.css';
 
 export function Overview() {
   const { userData } = useAuth();
   const { getLedgersForDateRange } = useLedger();
-  const [ledgers, setLedgers] = useState<Map<string, DayLedger>>(new Map());
+  const [ledgers, setLedgers] = useState(new Map());
   const [loading, setLoading] = useState(true);
 
   const calorieTarget = userData?.dailyMetrics?.calories || 2000;
-  const proteinTarget = userData?.dailyMetrics?.protein || 150;
-  const carbsTarget = userData?.dailyMetrics?.carbs || 250;
-  const fatTarget = userData?.dailyMetrics?.fat || 70;
 
   useEffect(() => {
     async function fetchData() {
@@ -66,35 +61,35 @@ export function Overview() {
 
   if (loading) {
     return (
-      <div className={styles.loading}>
-        <div className={styles.skeleton} style={{ height: '300px' }} />
-        <div className={styles.skeleton} style={{ height: '200px', marginTop: '24px' }} />
+      <div className="flex flex-col gap-xl p-md">
+        <div className="bg-[linear-gradient(90deg,var(--color-bg-card)_25%,var(--color-bg-accent)_50%,var(--color-bg-card)_75%)] bg-[length:200%_100%] animate-[loading_1.5s_infinite] rounded-md border border-gray-800 h-[300px]" />
+        <div className="bg-[linear-gradient(90deg,var(--color-bg-card)_25%,var(--color-bg-accent)_50%,var(--color-bg-card)_75%)] bg-[length:200%_100%] animate-[loading_1.5s_infinite] rounded-md border border-gray-800 h-[200px] mt-[24px]" />
       </div>
     );
   }
 
   return (
     <motion.div 
-      className={styles.overview}
+      className="flex flex-col gap-[3rem] p-md max-w-[800px] mx-auto"
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
     >
       {/* Calorie Trend Chart */}
-      <section className={styles.chartSection}>
-        <div className={styles.sectionHeader}>
-          <div className={styles.headerTitle}>
-            <Flame size={20} className={styles.icon} />
-            <h2>Calorie Trend</h2>
+      <section className="bg-bg-card border border-gray-800 rounded-md p-xl shadow-card">
+        <div className="flex justify-between items-center mb-xl">
+          <div className="flex items-center gap-md">
+            <Flame size={20} className="text-primary" />
+            <h2 className="font-display text-[1.25rem] uppercase tracking-[0.1em] m-0 text-white">Calorie Trend</h2>
           </div>
-          <div className={styles.targetBadge}>
+          <div className="flex items-center gap-xs py-[4px] px-[10px] bg-primary/10 border border-primary/20 rounded-full text-primary font-display text-[0.65rem] uppercase tracking-[0.05em]">
             <Target size={14} />
             <span>Target: {calorieTarget}</span>
           </div>
         </div>
 
-        <div className={styles.chartContainer}>
-          <svg viewBox="0 0 700 300" className={styles.lineChart}>
+        <div className="w-full aspect-[7/3] mt-md max-sm:aspect-[4/3]">
+          <svg viewBox="0 0 700 300" className="w-full h-full overflow-visible">
             {/* Grid lines */}
             {[0, 0.25, 0.5, 0.75, 1].map((p, i) => (
               <line 
@@ -157,7 +152,7 @@ export function Overview() {
               strokeWidth="4"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className={styles.chartLine}
+              className="drop-shadow-[0_0_8px_var(--color-primary-glow)]"
             />
 
             {/* Data points */}
@@ -165,7 +160,7 @@ export function Overview() {
               const x = 40 + (i * 106);
               const y = 30 + (240 * (1 - d.calories / maxCalories));
               return (
-                <g key={i} className={styles.dataPoint}>
+                <g key={i} className="group cursor-pointer">
                   <circle 
                     cx={x} 
                     cy={y} 
@@ -173,9 +168,10 @@ export function Overview() {
                     fill="var(--color-bg-deep)" 
                     stroke="var(--color-primary)" 
                     strokeWidth="3"
+                    className="transition-[r] duration-200 group-hover:r-8"
                   />
-                  <text x={x} y="295" textAnchor="middle" className={styles.axisLabel}>{d.label}</text>
-                  <text x={x} y={y - 15} textAnchor="middle" className={styles.valueLabel}>{d.calories}</text>
+                  <text x={x} y="295" textAnchor="middle" className="fill-gray-500 text-[12px] font-display uppercase tracking-widest">{d.label}</text>
+                  <text x={x} y={y - 15} textAnchor="middle" className="fill-primary text-[10px] font-extrabold font-display opacity-0 transition-opacity duration-200 group-hover:opacity-100">{d.calories}</text>
                 </g>
               );
             })}
@@ -184,31 +180,31 @@ export function Overview() {
       </section>
 
       {/* Macro Breakdown Chart */}
-      <section className={styles.macroSection}>
-        <div className={styles.sectionHeader}>
-          <div className={styles.headerTitle}>
-            <Beef size={20} className={styles.icon} />
-            <h2>Macro Breakdown</h2>
+      <section className="bg-bg-card border border-gray-800 rounded-md p-xl shadow-card">
+        <div className="flex justify-between items-center mb-xl">
+          <div className="flex items-center gap-md">
+            <Beef size={20} className="text-primary" />
+            <h2 className="font-display text-[1.25rem] uppercase tracking-[0.1em] m-0 text-white">Macro Breakdown</h2>
           </div>
         </div>
 
-        <div className={styles.macroGrid}>
+        <div className="flex justify-between items-end h-[200px] gap-md mb-xl pb-lg border-b border-gray-800">
           {chartData.map((d, i) => (
-            <div key={i} className={styles.macroDay}>
-              <span className={styles.dayLabel}>{d.label}</span>
-              <div className={styles.stackedBar}>
+            <div key={i} className="flex-1 flex flex-col items-center h-full justify-end gap-md">
+              <span className="text-[0.65rem] font-display text-gray-500 uppercase">{d.label}</span>
+              <div className="w-[24px] flex flex-col-reverse bg-bg-accent rounded-full overflow-hidden h-full max-h-[160px] max-sm:w-[16px]">
                 <div 
-                  className={styles.barProtein} 
+                  className="bg-primary w-full" 
                   style={{ height: `${(d.protein * 4 / maxCalories) * 300}%` }}
                   title={`Protein: ${d.protein}g`}
                 />
                 <div 
-                  className={styles.barCarbs} 
+                  className="bg-secondary w-full" 
                   style={{ height: `${(d.carbs * 4 / maxCalories) * 300}%` }}
                   title={`Carbs: ${d.carbs}g`}
                 />
                 <div 
-                  className={styles.barFat} 
+                  className="bg-warning w-full" 
                   style={{ height: `${(d.fat * 9 / maxCalories) * 300}%` }}
                   title={`Fat: ${d.fat}g`}
                 />
@@ -217,17 +213,17 @@ export function Overview() {
           ))}
         </div>
 
-        <div className={styles.macroLegend}>
-          <div className={styles.legendItem}>
-            <div className={styles.legendColor} style={{ background: 'var(--color-primary)' }} />
+        <div className="flex justify-center gap-xl max-sm:gap-md">
+          <div className="flex items-center gap-sm text-[0.7rem] font-display uppercase text-gray-400">
+            <div className="w-[10px] h-[10px] rounded-[2px]" style={{ background: 'var(--color-primary)' }} />
             <span>Protein</span>
           </div>
-          <div className={styles.legendItem}>
-            <div className={styles.legendColor} style={{ background: 'var(--color-secondary)' }} />
+          <div className="flex items-center gap-sm text-[0.7rem] font-display uppercase text-gray-400">
+            <div className="w-[10px] h-[10px] rounded-[2px]" style={{ background: 'var(--color-secondary)' }} />
             <span>Carbs</span>
           </div>
-          <div className={styles.legendItem}>
-            <div className={styles.legendColor} style={{ background: 'var(--color-warning)' }} />
+          <div className="flex items-center gap-sm text-[0.7rem] font-display uppercase text-gray-400">
+            <div className="w-[10px] h-[10px] rounded-[2px]" style={{ background: 'var(--color-warning)' }} />
             <span>Fat</span>
           </div>
         </div>
@@ -235,4 +231,3 @@ export function Overview() {
     </motion.div>
   );
 }
-

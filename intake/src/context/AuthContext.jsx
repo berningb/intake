@@ -1,6 +1,5 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import {
-  User as FirebaseUser,
   onAuthStateChanged,
   signInWithPopup,
   signInAnonymously,
@@ -10,9 +9,8 @@ import {
 } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db, IS_MOCK_MODE } from '../config/firebase';
-import { User, DailyMetrics, UserPreferences } from '../types';
 
-const MOCK_USER_DATA: User = {
+const MOCK_USER_DATA = {
   id: 'mock-user-123',
   email: 'mock@example.com',
   displayName: 'Mock Pilot',
@@ -21,8 +19,8 @@ const MOCK_USER_DATA: User = {
     activityLevel: 'moderate'
   },
   dailyMetrics: {
-    calories: 2500,
-    protein: 180,
+    calories: 2000,
+    protein: 150,
     carbs: 250,
     fat: 80
   },
@@ -31,19 +29,7 @@ const MOCK_USER_DATA: User = {
   updatedAt: new Date()
 };
 
-interface AuthContextType {
-  currentUser: FirebaseUser | null;
-  userData: User | null;
-  loading: boolean;
-  isGuest: boolean;
-  signInWithGoogle: () => Promise<void>;
-  continueAsGuest: () => Promise<void>;
-  upgradeGuestAccount: () => Promise<void>;
-  logout: () => Promise<void>;
-  updateUserData: (data: Partial<User>) => Promise<void>;
-}
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext(undefined);
 
 export function useAuth() {
   const context = useContext(AuthContext);
@@ -53,19 +39,15 @@ export function useAuth() {
   return context;
 }
 
-interface AuthProviderProps {
-  children: ReactNode;
-}
-
 const googleProvider = new GoogleAuthProvider();
 
-export function AuthProvider({ children }: AuthProviderProps) {
-  const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
-  const [userData, setUserData] = useState<User | null>(null);
+export function AuthProvider({ children }) {
+  const [currentUser, setCurrentUser] = useState(null);
+  const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isGuest, setIsGuest] = useState(false);
 
-  async function fetchUserData(uid: string) {
+  async function fetchUserData(uid) {
     const userDoc = await getDoc(doc(db, 'users', uid));
     if (userDoc.exists()) {
       const data = userDoc.data();
@@ -74,22 +56,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
         id: uid,
         createdAt: data.createdAt?.toDate() || new Date(),
         updatedAt: data.updatedAt?.toDate() || new Date()
-      } as User);
+      });
     }
     return userDoc.exists();
   }
 
-  async function createUserProfile(user: FirebaseUser, isGuestUser: boolean = false) {
-    const defaultPreferences: UserPreferences = {
+  async function createUserProfile(user, isGuestUser = false) {
+    const defaultPreferences = {
       dietaryRestrictions: [],
       activityLevel: 'moderate'
     };
 
-    const defaultMetrics: DailyMetrics = {
+    const defaultMetrics = {
       calories: 2000
     };
 
-    const newUser: Omit<User, 'id'> = {
+    const newUser = {
       email: user.email || '',
       displayName: isGuestUser ? 'Guest' : (user.displayName || ''),
       preferences: defaultPreferences,
@@ -103,41 +85,63 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   async function signInWithGoogle() {
+    // If we have a real auth object (connected to Firebase), try real sign-in
+    if (auth && auth.app) {
+      try {
+        const result = await signInWithPopup(auth, googleProvider);
+        setIsGuest(false);
+        const userExists = await fetchUserData(result.user.uid);
+        
+        if (!userExists) {
+          await createUserProfile(result.user, false);
+        }
+        return;
+      } catch (error) {
+        console.error("Real Google Sign-In failed:", error);
+        throw error;
+      }
+    }
+    
+    // If we're here, it means Firebase isn't configured at all
+    // In mock mode, we fallback to the mock pilot for previewing
     if (IS_MOCK_MODE) {
-      setCurrentUser({ uid: 'mock-user-123', email: 'mock@example.com', displayName: 'Mock Pilot' } as any);
+      setCurrentUser({ uid: 'mock-user-123', email: 'mock@example.com', displayName: 'Mock Pilot' });
       setUserData(MOCK_USER_DATA);
       setIsGuest(false);
       return;
     }
-    const result = await signInWithPopup(auth, googleProvider);
-    setIsGuest(false);
-    const userExists = await fetchUserData(result.user.uid);
-    
-    if (!userExists) {
-      await createUserProfile(result.user, false);
-    }
+
+    throw new Error("Firebase is not configured. Please add your credentials to a .env file.");
   }
 
   async function continueAsGuest() {
-    if (IS_MOCK_MODE) {
-      setCurrentUser({ uid: 'mock-guest-456', email: '', displayName: 'Guest' } as any);
-      setUserData({ ...MOCK_USER_DATA, id: 'mock-guest-456', displayName: 'Guest' });
-      setIsGuest(true);
-      return;
+    // Try real anonymous sign-in if connected to Firebase
+    if (auth && auth.app) {
+      try {
+        const result = await signInAnonymously(auth);
+        setIsGuest(true);
+        const userExists = await fetchUserData(result.user.uid);
+        
+        if (!userExists) {
+          await createUserProfile(result.user, true);
+        }
+        return;
+      } catch (error) {
+        console.error("Real Guest Sign-In failed:", error);
+        if (!IS_MOCK_MODE) throw error;
+      }
     }
-    const result = await signInAnonymously(auth);
+
+    // Fallback to mock guest
+    setCurrentUser({ uid: 'mock-guest-456', email: '', displayName: 'Guest' });
+    setUserData({ ...MOCK_USER_DATA, id: 'mock-guest-456', displayName: 'Guest' });
     setIsGuest(true);
-    const userExists = await fetchUserData(result.user.uid);
-    
-    if (!userExists) {
-      await createUserProfile(result.user, true);
-    }
   }
 
   async function upgradeGuestAccount() {
     if (IS_MOCK_MODE) {
       setIsGuest(false);
-      setUserData({ ...userData!, displayName: 'Mock Pilot', email: 'mock@example.com' });
+      setUserData({ ...userData, displayName: 'Mock Pilot', email: 'mock@example.com' });
       return;
     }
     if (!currentUser || !currentUser.isAnonymous) return;
@@ -160,7 +164,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           displayName: result.user.displayName || ''
         });
       }
-    } catch (error: any) {
+    } catch (error) {
       // If account already exists, sign in with Google instead
       if (error.code === 'auth/credential-already-in-use') {
         await signOut(auth);
@@ -172,18 +176,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   async function logout() {
-    if (IS_MOCK_MODE) {
-      setCurrentUser(null);
-      setUserData(null);
-      setIsGuest(false);
-      return;
+    if (auth && typeof auth.signOut === 'function') {
+      await auth.signOut();
+    } else if (auth && auth.app) {
+      await signOut(auth);
     }
-    await signOut(auth);
+    
+    // Always clear local state
+    setCurrentUser(null);
     setUserData(null);
     setIsGuest(false);
+    localStorage.removeItem('intake_mock_user');
   }
 
-  async function updateUserData(data: Partial<User>) {
+  async function updateUserData(data) {
     if (!currentUser) return;
     
     const updatedData = {
@@ -201,49 +207,65 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   useEffect(() => {
-    if (IS_MOCK_MODE) {
-      // Simulation of already logged in user for mock mode
-      const savedMockUser = localStorage.getItem('intake_mock_user');
-      if (savedMockUser) {
-        const parsed = JSON.parse(savedMockUser);
-        setCurrentUser(parsed.currentUser);
-        setUserData({
-          ...parsed.userData,
-          createdAt: new Date(parsed.userData.createdAt),
-          updatedAt: new Date(parsed.userData.updatedAt)
-        });
-        setIsGuest(parsed.isGuest);
-      }
-      setLoading(false);
-      return;
-    }
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setCurrentUser(user);
+    // Handle both real Firebase auth and mock auth
+    const handleAuthChange = async (user) => {
       if (user) {
+        setCurrentUser(user);
         setIsGuest(user.isAnonymous);
         await fetchUserData(user.uid);
+        setLoading(false);
+      } else if (IS_MOCK_MODE) {
+        const savedMockUser = localStorage.getItem('intake_mock_user');
+        if (savedMockUser) {
+          const parsed = JSON.parse(savedMockUser);
+          setCurrentUser(parsed.currentUser);
+          setUserData({
+            ...parsed.userData,
+            createdAt: new Date(parsed.userData.createdAt),
+            updatedAt: new Date(parsed.userData.updatedAt)
+          });
+          setIsGuest(parsed.isGuest);
+        } else {
+          setCurrentUser(null);
+          setUserData(null);
+          setIsGuest(false);
+        }
+        setLoading(false);
       } else {
+        setCurrentUser(null);
         setUserData(null);
         setIsGuest(false);
+        setLoading(false);
       }
-      setLoading(false);
-    });
+    };
+
+    // If it's a real Firebase auth object, use the standard listener
+    // If it's our mock object, it will have its own onAuthStateChanged method
+    let unsubscribe;
+    if (auth && typeof auth.onAuthStateChanged === 'function' && !auth.app) {
+      // This is our mock auth object from firebase.js
+      unsubscribe = auth.onAuthStateChanged(handleAuthChange);
+    } else {
+      // This is a real Firebase auth object
+      unsubscribe = onAuthStateChanged(auth, handleAuthChange);
+    }
 
     return unsubscribe;
   }, []);
 
-  // Save mock state to localStorage
+  // Save mock state to localStorage (only for non-guest users in mock mode)
   useEffect(() => {
     if (IS_MOCK_MODE && !loading) {
-      if (currentUser) {
+      if (currentUser && !isGuest) {
         localStorage.setItem('intake_mock_user', JSON.stringify({
           currentUser: { uid: currentUser.uid, email: currentUser.email, displayName: currentUser.displayName },
           userData,
           isGuest
         }));
-      } else {
+      } else if (!currentUser) {
         localStorage.removeItem('intake_mock_user');
       }
+      // If it's a guest, we don't save to localStorage so it resets on refresh
     }
   }, [currentUser, userData, isGuest, loading]);
 
