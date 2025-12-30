@@ -9,8 +9,27 @@ import {
   signOut
 } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { auth, db } from '../config/firebase';
+import { auth, db, IS_MOCK_MODE } from '../config/firebase';
 import { User, DailyMetrics, UserPreferences } from '../types';
+
+const MOCK_USER_DATA: User = {
+  id: 'mock-user-123',
+  email: 'mock@example.com',
+  displayName: 'Mock Pilot',
+  preferences: {
+    dietaryRestrictions: [],
+    activityLevel: 'moderate'
+  },
+  dailyMetrics: {
+    calories: 2500,
+    protein: 180,
+    carbs: 250,
+    fat: 80
+  },
+  onboardingComplete: true,
+  createdAt: new Date(),
+  updatedAt: new Date()
+};
 
 interface AuthContextType {
   currentUser: FirebaseUser | null;
@@ -84,6 +103,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   async function signInWithGoogle() {
+    if (IS_MOCK_MODE) {
+      setCurrentUser({ uid: 'mock-user-123', email: 'mock@example.com', displayName: 'Mock Pilot' } as any);
+      setUserData(MOCK_USER_DATA);
+      setIsGuest(false);
+      return;
+    }
     const result = await signInWithPopup(auth, googleProvider);
     setIsGuest(false);
     const userExists = await fetchUserData(result.user.uid);
@@ -94,6 +119,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   async function continueAsGuest() {
+    if (IS_MOCK_MODE) {
+      setCurrentUser({ uid: 'mock-guest-456', email: '', displayName: 'Guest' } as any);
+      setUserData({ ...MOCK_USER_DATA, id: 'mock-guest-456', displayName: 'Guest' });
+      setIsGuest(true);
+      return;
+    }
     const result = await signInAnonymously(auth);
     setIsGuest(true);
     const userExists = await fetchUserData(result.user.uid);
@@ -104,6 +135,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   async function upgradeGuestAccount() {
+    if (IS_MOCK_MODE) {
+      setIsGuest(false);
+      setUserData({ ...userData!, displayName: 'Mock Pilot', email: 'mock@example.com' });
+      return;
+    }
     if (!currentUser || !currentUser.isAnonymous) return;
     
     try {
@@ -136,6 +172,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   async function logout() {
+    if (IS_MOCK_MODE) {
+      setCurrentUser(null);
+      setUserData(null);
+      setIsGuest(false);
+      return;
+    }
     await signOut(auth);
     setUserData(null);
     setIsGuest(false);
@@ -149,7 +191,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       updatedAt: new Date()
     };
 
-    await setDoc(doc(db, 'users', currentUser.uid), updatedData, { merge: true });
+    if (!IS_MOCK_MODE) {
+      await setDoc(doc(db, 'users', currentUser.uid), updatedData, { merge: true });
+    }
     
     if (userData) {
       setUserData({ ...userData, ...updatedData });
@@ -157,6 +201,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   useEffect(() => {
+    if (IS_MOCK_MODE) {
+      // Simulation of already logged in user for mock mode
+      const savedMockUser = localStorage.getItem('intake_mock_user');
+      if (savedMockUser) {
+        const parsed = JSON.parse(savedMockUser);
+        setCurrentUser(parsed.currentUser);
+        setUserData({
+          ...parsed.userData,
+          createdAt: new Date(parsed.userData.createdAt),
+          updatedAt: new Date(parsed.userData.updatedAt)
+        });
+        setIsGuest(parsed.isGuest);
+      }
+      setLoading(false);
+      return;
+    }
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
       if (user) {
@@ -171,6 +231,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     return unsubscribe;
   }, []);
+
+  // Save mock state to localStorage
+  useEffect(() => {
+    if (IS_MOCK_MODE && !loading) {
+      if (currentUser) {
+        localStorage.setItem('intake_mock_user', JSON.stringify({
+          currentUser: { uid: currentUser.uid, email: currentUser.email, displayName: currentUser.displayName },
+          userData,
+          isGuest
+        }));
+      } else {
+        localStorage.removeItem('intake_mock_user');
+      }
+    }
+  }, [currentUser, userData, isGuest, loading]);
 
   const value = {
     currentUser,

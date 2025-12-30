@@ -14,7 +14,7 @@ import {
   arrayRemove
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { db, storage } from '../config/firebase';
+import { db, storage, IS_MOCK_MODE } from '../config/firebase';
 import { useAuth } from './AuthContext';
 import { DayLedger, FoodEntry, ActivityEntry, NutritionInfo, FoodDecision, DecisionLevel, Routine } from '../types';
 import { format } from 'date-fns';
@@ -58,6 +58,7 @@ interface LedgerProviderProps {
 
 export function LedgerProvider({ children }: LedgerProviderProps) {
   const { currentUser, userData, isGuest } = useAuth();
+  const isEffectivelyMock = isGuest || IS_MOCK_MODE;
   const [currentDate, setCurrentDate] = useState(new Date());
   const [currentLedger, setCurrentLedger] = useState<DayLedger | null>(null);
   const [loading, setLoading] = useState(true);
@@ -67,25 +68,63 @@ export function LedgerProvider({ children }: LedgerProviderProps) {
 
   const dateString = format(currentDate, 'yyyy-MM-dd');
 
-  // Generate mock data once for guest users
+  // Generate mock data once for guest or mock users
   useEffect(() => {
-    if (isGuest && currentUser && userData) {
+    if (isEffectivelyMock && currentUser && userData) {
       if (mockLedgersRef.current.length === 0) {
-        mockLedgersRef.current = generateMockLedgers(
-          currentUser.uid, 
-          60, 
-          { 
-            calories: userData.dailyMetrics?.calories || 2000, 
-            protein: userData.dailyMetrics?.protein || 150 
+        // Try to load from localStorage first
+        const saved = localStorage.getItem('intake_mock_ledgers');
+        if (saved) {
+          try {
+            mockLedgersRef.current = JSON.parse(saved).map((l: any) => ({
+              ...l,
+              foods: (l.foods || []).map((f: any) => ({ ...f, timestamp: new Date(f.timestamp) })),
+              activities: (l.activities || []).map((a: any) => ({ ...a, timestamp: new Date(a.timestamp) }))
+            }));
+          } catch (e) {
+            console.error('Error parsing saved mock ledgers:', e);
           }
-        );
+        }
+        
+        if (mockLedgersRef.current.length === 0) {
+          mockLedgersRef.current = generateMockLedgers(
+            currentUser.uid, 
+            60, 
+            { 
+              calories: userData.dailyMetrics?.calories || 2000, 
+              protein: userData.dailyMetrics?.protein || 150 
+            }
+          );
+        }
       }
       if (mockRoutinesRef.current.length === 0) {
-        mockRoutinesRef.current = generateMockRoutines(currentUser.uid);
+        const saved = localStorage.getItem('intake_mock_routines');
+        if (saved) {
+          try {
+            mockRoutinesRef.current = JSON.parse(saved).map((r: any) => ({
+              ...r,
+              createdAt: new Date(r.createdAt)
+            }));
+          } catch (e) {
+            console.error('Error parsing saved mock routines:', e);
+          }
+        }
+        
+        if (mockRoutinesRef.current.length === 0) {
+          mockRoutinesRef.current = generateMockRoutines(currentUser.uid);
+        }
         setRoutines(mockRoutinesRef.current);
       }
     }
-  }, [isGuest, currentUser, userData]);
+  }, [isEffectivelyMock, currentUser, userData]);
+
+  // Persistent storage for mock data
+  useEffect(() => {
+    if (isEffectivelyMock && currentUser && mockLedgersRef.current.length > 0) {
+      localStorage.setItem('intake_mock_ledgers', JSON.stringify(mockLedgersRef.current));
+      localStorage.setItem('intake_mock_routines', JSON.stringify(mockRoutinesRef.current));
+    }
+  }, [currentLedger, routines, isEffectivelyMock, currentUser]);
 
   const fetchLedger = useCallback(async () => {
     if (!currentUser) {
@@ -96,8 +135,8 @@ export function LedgerProvider({ children }: LedgerProviderProps) {
 
     setLoading(true);
 
-    // Use mock data for guest users
-    if (isGuest) {
+    // Use mock data for guest or mock users
+    if (isEffectivelyMock) {
       const mockLedger = mockLedgersRef.current.find(l => l.date === dateString);
       if (mockLedger) {
         setCurrentLedger(mockLedger);
@@ -157,7 +196,7 @@ export function LedgerProvider({ children }: LedgerProviderProps) {
       return;
     }
 
-    if (isGuest) {
+    if (isEffectivelyMock) {
       setRoutines(mockRoutinesRef.current);
       return;
     }
@@ -187,12 +226,12 @@ export function LedgerProvider({ children }: LedgerProviderProps) {
 
     const newRoutine: Routine = {
       ...routine,
-      id: isGuest ? `mock_routine_${Date.now()}` : '', // Will be set by Firebase for non-guests
+      id: isEffectivelyMock ? `mock_routine_${Date.now()}` : '', // Will be set by Firebase for non-guests
       userId: currentUser.uid,
       createdAt: new Date()
     };
 
-    if (isGuest) {
+    if (isEffectivelyMock) {
       mockRoutinesRef.current = [...mockRoutinesRef.current, newRoutine];
       setRoutines(mockRoutinesRef.current);
       return;
@@ -205,7 +244,7 @@ export function LedgerProvider({ children }: LedgerProviderProps) {
   async function deleteRoutine(routineId: string) {
     if (!currentUser) return;
 
-    if (isGuest) {
+    if (isEffectivelyMock) {
       mockRoutinesRef.current = mockRoutinesRef.current.filter(r => r.id !== routineId);
       setRoutines(mockRoutinesRef.current);
       return;
@@ -226,8 +265,8 @@ export function LedgerProvider({ children }: LedgerProviderProps) {
       timestamp: new Date()
     };
 
-    // For guest users, just update local state
-    if (isGuest) {
+    // For guest or mock users, just update local state
+    if (isEffectivelyMock) {
       const updatedLedger = {
         ...currentLedger,
         foods: [...currentLedger.foods, newFood]
@@ -256,8 +295,8 @@ export function LedgerProvider({ children }: LedgerProviderProps) {
     const foodToRemove = currentLedger.foods.find(f => f.id === foodId);
     if (!foodToRemove) return;
 
-    // For guest users, just update local state
-    if (isGuest) {
+    // For guest or mock users, just update local state
+    if (isEffectivelyMock) {
       const updatedLedger = {
         ...currentLedger,
         foods: currentLedger.foods.filter(f => f.id !== foodId)
@@ -286,8 +325,8 @@ export function LedgerProvider({ children }: LedgerProviderProps) {
       f.id === foodId ? { ...f, ...updates } : f
     );
 
-    // For guest users, just update local state
-    if (isGuest) {
+    // For guest or mock users, just update local state
+    if (isEffectivelyMock) {
       const updatedLedger = { ...currentLedger, foods: updatedFoods };
       setCurrentLedger(updatedLedger);
       const idx = mockLedgersRef.current.findIndex(l => l.id === currentLedger.id);
@@ -315,7 +354,7 @@ export function LedgerProvider({ children }: LedgerProviderProps) {
       timestamp: new Date()
     };
 
-    if (isGuest) {
+    if (isEffectivelyMock) {
       const updatedLedger = {
         ...currentLedger,
         activities: [...currentLedger.activities, newActivity]
@@ -343,7 +382,7 @@ export function LedgerProvider({ children }: LedgerProviderProps) {
     const activityToRemove = currentLedger.activities.find(a => a.id === activityId);
     if (!activityToRemove) return;
 
-    if (isGuest) {
+    if (isEffectivelyMock) {
       const updatedLedger = {
         ...currentLedger,
         activities: currentLedger.activities.filter(a => a.id !== activityId)
@@ -368,8 +407,8 @@ export function LedgerProvider({ children }: LedgerProviderProps) {
   async function uploadFoodImage(file: File): Promise<string> {
     if (!currentUser) throw new Error('Not authenticated');
 
-    // For guest users, create a local blob URL
-    if (isGuest) {
+    // For guest or mock users, create a local blob URL
+    if (isEffectivelyMock) {
       return URL.createObjectURL(file);
     }
 
@@ -451,7 +490,7 @@ export function LedgerProvider({ children }: LedgerProviderProps) {
   async function addWin(win: string) {
     if (!currentUser || !currentLedger) return;
 
-    if (isGuest) {
+    if (isEffectivelyMock) {
       const updatedLedger = {
         ...currentLedger,
         wins: [...(currentLedger.wins || []), win]
@@ -476,7 +515,7 @@ export function LedgerProvider({ children }: LedgerProviderProps) {
   async function removeWin(win: string) {
     if (!currentUser || !currentLedger) return;
 
-    if (isGuest) {
+    if (isEffectivelyMock) {
       const updatedLedger = {
         ...currentLedger,
         wins: (currentLedger.wins || []).filter(w => w !== win)
@@ -503,8 +542,8 @@ export function LedgerProvider({ children }: LedgerProviderProps) {
     
     if (!currentUser) return result;
 
-    // For guest users, filter mock ledgers
-    if (isGuest) {
+    // For guest or mock users, filter mock ledgers
+    if (isEffectivelyMock) {
       mockLedgersRef.current.forEach(ledger => {
         if (ledger.date >= startDate && ledger.date <= endDate) {
           result.set(ledger.date, ledger);
