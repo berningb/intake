@@ -47,9 +47,9 @@ export function Login() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
       >
-        <div className="text-center mb-[3rem]">
-          <h1 className="font-display text-[2rem] font-black text-white tracking-[0.2em] uppercase mb-xs shadow-[0_0_15px_rgba(255,255,255,0.2)] max-sm:text-[1.75rem]">intake</h1>
-          <p className="text-primary text-[0.75rem] font-display uppercase tracking-[0.3em] m-0 opacity-80">Mindful eating, simplified</p>
+        <div className="text-center mb-[3.5rem]">
+          <h1 className="font-display text-[2.25rem] font-black text-white tracking-[0.25em] uppercase mb-md max-sm:text-[1.75rem]">intake</h1>
+          <p className="text-primary text-[0.7rem] font-display uppercase tracking-[0.4em] m-0 opacity-80">Mindful eating, simplified</p>
         </div>
 
         <div className="flex flex-col gap-xl">
