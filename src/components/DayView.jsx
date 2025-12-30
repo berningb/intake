@@ -1,18 +1,51 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { format } from 'date-fns';
-import { ChevronLeft, ChevronRight, Flame, Beef, Wheat, Droplets, Plus, Trash2, CheckCircle, AlertCircle, XCircle, X } from 'lucide-react';
+import { format, subDays, eachDayOfInterval, isSameDay, startOfWeek, endOfWeek } from 'date-fns';
+import { ChevronLeft, ChevronRight, Flame, Beef, Wheat, Droplets, Plus, Trash2, CheckCircle, AlertCircle, XCircle, X, Calendar, FlaskConical } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLedger } from '../context/LedgerContext';
 import { useNavigate } from 'react-router-dom';
 import { Scan } from '../pages/Scan';
+import { WaterTracker } from './WaterTracker';
+import { LiquidProgressBar } from './LiquidProgressBar';
 
 export function DayView({ onClose, isModal = false }) {
   const { userData } = useAuth();
-  const { currentDate, setCurrentDate, currentLedger, loading, getTotals, removeFoodEntry, removeActivityEntry } = useLedger();
+  const { currentDate, setCurrentDate, currentLedger, loading, getTotals, removeFoodEntry, removeActivityEntry, updateWater, getConsumptionStats, getLedgersForDateRange } = useLedger();
   const navigate = useNavigate();
   
   const [showScan, setShowScan] = useState(false);
+  const [weekLedgers, setWeekLedgers] = useState(new Map());
+  const [stats, setStats] = useState({
+    protein: { avgEntries: 3 },
+    carbs: { avgEntries: 3 },
+    fat: { avgEntries: 2 },
+    water: { avgEntries: 8 }
+  });
+
+  // Calculate the current week range (Always last 7 days from today)
+  const weekDays = useMemo(() => {
+    const today = new Date();
+    const start = subDays(today, 6);
+    return eachDayOfInterval({ start, end: today });
+  }, []);
+
+  useEffect(() => {
+    async function fetchWeekData() {
+      const today = new Date();
+      const startStr = format(subDays(today, 6), 'yyyy-MM-dd');
+      const endStr = format(today, 'yyyy-MM-dd');
+      const data = await getLedgersForDateRange(startStr, endStr);
+      setWeekLedgers(data);
+    }
+    fetchWeekData();
+  }, [getLedgersForDateRange]);
+
+  useEffect(() => {
+    if (currentLedger) {
+      setStats(getConsumptionStats());
+    }
+  }, [currentLedger, getConsumptionStats]);
   
   // Disable body scroll when modal is open
   useEffect(() => {
@@ -47,12 +80,21 @@ export function DayView({ onClose, isModal = false }) {
   };
 
   const changeDate = (delta) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const minDate = subDays(today, 6);
+    
     const newDate = new Date(currentDate);
     newDate.setDate(newDate.getDate() + delta);
+    newDate.setHours(0, 0, 0, 0);
+    
+    if (newDate < minDate || newDate > today) return;
+    
     setCurrentDate(newDate);
   };
 
   const isToday = format(currentDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+  const isMinDate = format(currentDate, 'yyyy-MM-dd') === format(subDays(new Date(), 6), 'yyyy-MM-dd');
 
   const caloriePercent = metrics.calories 
     ? Math.min(100, (totals.calories / metrics.calories) * 100) 
@@ -148,7 +190,11 @@ export function DayView({ onClose, isModal = false }) {
         </div>
         
         <div className="flex items-center gap-xs bg-bg-accent p-[4px] rounded-sm border border-gray-800 w-fit">
-          <button onClick={() => changeDate(-1)} className="p-xs rounded-xs bg-transparent text-gray-500 flex items-center justify-center transition-all duration-fast hover:bg-gray-800 hover:text-primary">
+          <button 
+            onClick={() => changeDate(-1)} 
+            className="p-xs rounded-xs bg-transparent text-gray-500 flex items-center justify-center transition-all duration-fast hover:bg-gray-800 hover:text-primary disabled:opacity-10"
+            disabled={isMinDate}
+          >
             <ChevronLeft size={20} />
           </button>
           <div className="relative flex items-center">
@@ -163,6 +209,7 @@ export function DayView({ onClose, isModal = false }) {
               id="day-view-date-picker"
               className="absolute opacity-0 w-0 h-0 pointer-events-none"
               value={format(currentDate, 'yyyy-MM-dd')}
+              min={format(subDays(new Date(), 6), 'yyyy-MM-dd')}
               max={format(new Date(), 'yyyy-MM-dd')}
               onChange={(e) => {
                 const date = new Date(e.target.value);
@@ -179,6 +226,99 @@ export function DayView({ onClose, isModal = false }) {
             <ChevronRight size={20} />
           </button>
         </div>
+
+        {/* Weekly Glance Bar */}
+        <div className="flex gap-xs mt-md pb-xs overflow-x-auto no-scrollbar">
+          {weekDays.map((day) => {
+            const dateStr = format(day, 'yyyy-MM-dd');
+            const ledger = weekLedgers.get(dateStr);
+            const isSelected = isSameDay(day, currentDate);
+            const hasData = ledger && ledger.foods.length > 0;
+            
+            // Calculate simple health score for the day
+            let statusColor = 'bg-gray-800'; // No data
+            let statusLabel = 'No logs';
+            if (hasData) {
+              const dayTotals = ledger.foods.reduce((acc, f) => ({
+                cal: acc.cal + (f.finalNutrition?.calories || 0),
+                p: acc.p + (f.finalNutrition?.protein || 0)
+              }), { cal: 0, p: 0 });
+              
+              const targetCal = metrics.calories || 2000;
+              const targetP = metrics.protein || 150;
+              const calDiff = (dayTotals.cal - targetCal) / targetCal;
+              const hitP = dayTotals.p >= targetP * 0.9;
+              
+              // Gamified Status Logic:
+              if (Math.abs(calDiff) <= 0.1 && hitP) {
+                // GOLD/CYAN GLOW: Perfect Balance
+                statusColor = 'bg-primary shadow-[0_0_12px_var(--color-primary-glow)] scale-125';
+                statusLabel = 'Perfect';
+              } else if (calDiff <= 0.1 || hitP) {
+                // CYAN: Close to targets or hit protein
+                statusColor = 'bg-primary/40';
+                statusLabel = 'Good';
+              } else if (calDiff > 0.1) {
+                // RED/SECONDARY: Over Calories
+                statusColor = 'bg-secondary';
+                statusLabel = 'Over Limit';
+              } else {
+                // AMBER/YELLOW: Under everything or slightly off
+                statusColor = 'bg-warning/60';
+                statusLabel = 'Under';
+              }
+            }
+
+            return (
+              <button
+                key={dateStr}
+                onClick={() => setCurrentDate(day)}
+                title={hasData ? `${statusLabel}: ${Math.round(ledger.foods.reduce((sum, f) => sum + (f.finalNutrition?.calories || 0), 0))} cal` : 'No logs'}
+                className={`flex flex-col items-center gap-[6px] min-w-[45px] p-xs rounded-sm border transition-all duration-fast ${
+                  isSelected 
+                    ? 'bg-primary/10 border-primary/50' 
+                    : 'bg-transparent border-transparent hover:bg-white/5'
+                }`}
+              >
+                <span className={`text-[0.55rem] font-bold font-display uppercase tracking-tighter ${isSelected ? 'text-primary' : 'text-gray-500'}`}>
+                  {format(day, 'EEE')}
+                </span>
+                <span className={`text-[0.8rem] font-black font-display ${isSelected ? 'text-white' : 'text-gray-400'}`}>
+                  {format(day, 'd')}
+                </span>
+                <motion.div 
+                  initial={false}
+                  animate={hasData ? { scale: [1, 1.2, 1] } : {}}
+                  className={`w-[4px] h-[4px] rounded-full transition-all duration-500 ${statusColor}`} 
+                />
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Status Legend - Semi-transparent micro text */}
+        <div className="flex flex-wrap gap-x-md gap-y-xs mt-xs px-xs opacity-50">
+          <div className="flex items-center gap-xs">
+            <div className="w-[3px] h-[3px] rounded-full bg-primary shadow-[0_0_4px_var(--color-primary-glow)]" />
+            <span className="text-[0.5rem] font-display uppercase tracking-widest text-gray-500 font-bold">Perfect</span>
+          </div>
+          <div className="flex items-center gap-xs">
+            <div className="w-[3px] h-[3px] rounded-full bg-primary/40" />
+            <span className="text-[0.5rem] font-display uppercase tracking-widest text-gray-500 font-bold">Good</span>
+          </div>
+          <div className="flex items-center gap-xs">
+            <div className="w-[3px] h-[3px] rounded-full bg-warning/60" />
+            <span className="text-[0.5rem] font-display uppercase tracking-widest text-gray-500 font-bold">Under</span>
+          </div>
+          <div className="flex items-center gap-xs">
+            <div className="w-[3px] h-[3px] rounded-full bg-secondary" />
+            <span className="text-[0.5rem] font-display uppercase tracking-widest text-gray-500 font-bold">Over</span>
+          </div>
+          <div className="flex items-center gap-xs">
+            <div className="w-[3px] h-[3px] rounded-full bg-gray-800" />
+            <span className="text-[0.5rem] font-display uppercase tracking-widest text-gray-500 font-bold">No Log</span>
+          </div>
+        </div>
       </motion.header>
 
       <motion.section className="bg-bg-card rounded-md p-lg border border-gray-800 mb-md relative overflow-hidden" variants={itemVariants}>
@@ -193,7 +333,7 @@ export function DayView({ onClose, isModal = false }) {
                 stroke="var(--color-bg-accent)"
                 strokeWidth="8"
               />
-              <circle
+              <motion.circle
                 cx="50"
                 cy="50"
                 r="42"
@@ -201,12 +341,21 @@ export function DayView({ onClose, isModal = false }) {
                 stroke={caloriePercent > 100 ? 'var(--color-error)' : 'var(--color-primary)'}
                 strokeWidth="8"
                 strokeLinecap="round"
-                strokeDasharray={`${caloriePercent * 2.64} 264`}
-                className="transition-[stroke-dasharray] duration-800 ease-[cubic-bezier(0.4,0,0.2,1)] drop-shadow-[0_0_5px_var(--color-primary-glow)]"
+                initial={{ strokeDasharray: "0 264" }}
+                animate={{ strokeDasharray: `${caloriePercent * 2.64} 264` }}
+                transition={{ duration: 1.5, ease: "easeOut" }}
+                className="drop-shadow-[0_0_8px_var(--color-primary-glow)]"
               />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="font-display text-[2rem] font-black text-white leading-none shadow-[0_0_15px_rgba(255,255,255,0.3)]">{Math.round(totals.calories)}</span>
+              <motion.span 
+                key={totals.calories}
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="font-display text-[2rem] font-black text-white leading-none shadow-[0_0_15px_rgba(255,255,255,0.3)]"
+              >
+                {Math.round(totals.calories)}
+              </motion.span>
               <span className="text-[0.6rem] font-display uppercase tracking-[0.1em] text-gray-500 mt-[2px]">/ {metrics.calories || '---'} CAL</span>
             </div>
           </div>
@@ -237,63 +386,53 @@ export function DayView({ onClose, isModal = false }) {
           )}
         </div>
 
-        <div className="grid grid-cols-3 gap-xl max-md:grid-cols-1 max-md:gap-md">
-          <div className="flex flex-col gap-sm">
-            <div className="flex justify-between items-center text-gray-300 font-display text-[0.6rem] font-bold uppercase tracking-[0.1em]">
-              <Beef size={16} />
-              <span>Protein</span>
-            </div>
-            <div className="h-[6px] bg-bg-accent rounded-xs overflow-hidden border border-gray-800">
-              <div 
-                className="h-full rounded-none transition-[width] duration-1000 ease-[cubic-bezier(0.4,0,0.2,1)] relative after:content-[''] after:absolute after:top-0 after:right-0 after:w-[2px] after:h-full after:bg-white/50 after:shadow-[0_0_5px_white]" 
-                style={{ 
-                  width: `${getMacroPercent(totals.protein, metrics.protein)}%`,
-                  background: 'var(--color-primary)'
-                }} 
-              />
-            </div>
-            <span className="text-[0.6rem] text-gray-500 font-display mt-[2px]">
-              {Math.round(totals.protein)}g / {metrics.protein || '---'}g
-            </span>
-          </div>
+        <div className="grid grid-cols-4 gap-xl max-md:grid-cols-2 max-md:gap-md">
+          <LiquidProgressBar 
+            label="Protein"
+            current={totals.protein}
+            target={metrics.protein}
+            percentage={getMacroPercent(totals.protein, metrics.protein)}
+            icon={Beef}
+            colorClass="from-cyan-600 to-cyan-400"
+            glowColor="rgba(0, 242, 255, 0.4)"
+            segments={stats.protein.avgEntries}
+          />
           
-          <div className="flex flex-col gap-sm">
-            <div className="flex justify-between items-center text-gray-300 font-display text-[0.6rem] font-bold uppercase tracking-[0.1em]">
-              <Wheat size={16} />
-              <span>Carbs</span>
-            </div>
-            <div className="h-[6px] bg-bg-accent rounded-xs overflow-hidden border border-gray-800">
-              <div 
-                className="h-full rounded-none transition-[width] duration-1000 ease-[cubic-bezier(0.4,0,0.2,1)] relative after:content-[''] after:absolute after:top-0 after:right-0 after:w-[2px] after:h-full after:bg-white/50 after:shadow-[0_0_5px_white]"
-                style={{ 
-                  width: `${getMacroPercent(totals.carbs, metrics.carbs)}%`,
-                  background: 'var(--color-secondary)'
-                }} 
-              />
-            </div>
-            <span className="text-[0.6rem] text-gray-500 font-display mt-[2px]">
-              {Math.round(totals.carbs)}g / {metrics.carbs || '---'}g
-            </span>
-          </div>
+          <LiquidProgressBar 
+            label="Carbs"
+            current={totals.carbs}
+            target={metrics.carbs}
+            percentage={getMacroPercent(totals.carbs, metrics.carbs)}
+            icon={Wheat}
+            colorClass="from-amber-500 to-amber-300"
+            glowColor="rgba(245, 158, 11, 0.4)"
+            segments={stats.carbs.avgEntries}
+          />
           
-          <div className="flex flex-col gap-sm">
-            <div className="flex justify-between items-center text-gray-300 font-display text-[0.6rem] font-bold uppercase tracking-[0.1em]">
-              <Droplets size={16} />
-              <span>Fat</span>
-            </div>
-            <div className="h-[6px] bg-bg-accent rounded-xs overflow-hidden border border-gray-800">
-              <div 
-                className="h-full rounded-none transition-[width] duration-1000 ease-[cubic-bezier(0.4,0,0.2,1)] relative after:content-[''] after:absolute after:top-0 after:right-0 after:w-[2px] after:h-full after:bg-white/50 after:shadow-[0_0_5px_white]"
-                style={{ 
-                  width: `${getMacroPercent(totals.fat, metrics.fat)}%`,
-                  background: 'var(--color-warning)'
-                }} 
-              />
-            </div>
-            <span className="text-[0.6rem] text-gray-500 font-display mt-[2px]">
-              {Math.round(totals.fat)}g / {metrics.fat || '---'}g
-            </span>
-          </div>
+          <LiquidProgressBar 
+            label="Fat"
+            current={totals.fat}
+            target={metrics.fat}
+            percentage={getMacroPercent(totals.fat, metrics.fat)}
+            icon={FlaskConical}
+            colorClass="from-rose-600 to-rose-400"
+            glowColor="rgba(225, 29, 72, 0.4)"
+            segments={stats.fat.avgEntries}
+          />
+
+          <LiquidProgressBar 
+            label="Water"
+            current={currentLedger?.water || 0}
+            target={userData?.preferences?.waterTarget || 2500}
+            percentage={((currentLedger?.water || 0) / (userData?.preferences?.waterTarget || 2500)) * 100}
+            icon={Droplets}
+            colorClass="from-blue-600 to-blue-400"
+            glowColor="rgba(59, 130, 246, 0.4)"
+            unit="ml"
+            onIncrease={() => updateWater(250)}
+            onDecrease={() => updateWater(-250)}
+            segments={stats.water.avgEntries}
+          />
         </div>
       </motion.section>
 
