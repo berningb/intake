@@ -1,7 +1,7 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Home, Calendar, Plus, LogOut, Dumbbell, UserPlus, ScanBarcode, Search, X } from 'lucide-react';
+import { Home, Calendar, Plus, LogOut, Dumbbell, User, UserPlus, ScanBarcode, Search, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Scan } from '../pages/Scan';
 import { ExperienceBar } from './ExperienceBar';
@@ -85,7 +85,7 @@ export function Layout() {
         </div>
       </aside>
 
-      <main className="flex-1 ml-[340px] p-xl min-h-screen bg-bg-deep relative before:content-[''] before:absolute before:top-0 before:left-0 before:right-0 before:h-[200px] before:bg-[radial-gradient(circle_at_50%_0%,rgba(0,242,255,0.05)_0%,transparent_70%)] before:pointer-events-none max-md:ml-0 max-md:p-md max-md:pb-[100px]">
+      <main className="flex-1 ml-[340px] p-xl min-h-screen bg-bg-deep relative before:content-[''] before:absolute before:top-0 before:left-0 before:right-0 before:h-[200px] before:bg-[radial-gradient(circle_at_50%_0%,rgba(0,242,255,0.05)_0%,transparent_70%)] before:pointer-events-none max-md:ml-0 max-md:p-md max-md:pb-[100px] overflow-x-hidden">
         {isGuest && (
           <motion.div 
             className="bg-warning/5 border border-warning rounded-sm p-md mb-lg text-[0.8rem] text-white flex items-center justify-center gap-md flex-wrap font-display uppercase tracking-[0.05em] shadow-[0_0_15px_rgba(255,255,0,0.1)]"
@@ -100,29 +100,46 @@ export function Layout() {
         <Outlet />
       </main>
 
-      {/* Mobile Sidebar (Bottom Nav) */}
-      <aside className="md:hidden bg-bg-card border-t border-gray-800 fixed bottom-0 left-0 right-0 flex flex-row p-sm z-[100]">
-        <nav className="flex flex-row justify-around w-full">
-          <NavLink to="/" className={({ isActive }) => `flex flex-col items-center gap-xs p-sm font-display text-[0.7rem] uppercase ${isActive ? 'text-primary' : 'text-gray-300'}`}>
-            <Home size={20} />
-            <span className="text-[0.65rem]">Dashboard</span>
+      {/* Mobile Bottom Nav */}
+      <aside className="md:hidden bg-bg-card/95 backdrop-blur-md border-t border-gray-800 fixed bottom-0 left-0 right-0 z-[100] shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
+        <nav className="flex flex-row items-center justify-around w-full px-2 pb-[env(safe-area-inset-bottom,0.5rem)] pt-4">
+          <NavLink to="/" className={({ isActive }) => `flex-1 flex flex-col items-center justify-center gap-1 font-display text-[0.6rem] uppercase transition-all duration-fast ${isActive ? 'text-primary' : 'text-gray-500'}`}>
+            <Home size={20} className="shrink-0" />
+            <span className="whitespace-nowrap">Home</span>
           </NavLink>
-          <NavLink to="/routines" className={({ isActive }) => `flex flex-col items-center gap-xs p-sm font-display text-[0.7rem] uppercase ${isActive ? 'text-primary' : 'text-gray-300'}`}>
-            <Dumbbell size={20} />
-            <span className="text-[0.65rem]">Routines</span>
+          <NavLink to="/routines" className={({ isActive }) => `flex-1 flex flex-col items-center justify-center gap-1 font-display text-[0.6rem] uppercase transition-all duration-fast ${isActive ? 'text-primary' : 'text-gray-500'}`}>
+            <Dumbbell size={20} className="shrink-0" />
+            <span className="whitespace-nowrap">Gym</span>
           </NavLink>
+          
+          {/* FAB Spacer */}
+          <div className="flex-1 flex justify-center pointer-events-none">
+            <div className="w-[60px]" />
+          </div>
+
+          <NavLink to="/profile" className={({ isActive }) => `flex-1 flex flex-col items-center justify-center gap-1 font-display text-[0.6rem] uppercase transition-all duration-fast ${isActive ? 'text-primary' : 'text-gray-500'}`}>
+            <User size={20} className="shrink-0" />
+            <span className="whitespace-nowrap">Profile</span>
+          </NavLink>
+          <button 
+            onClick={handleLogout}
+            className="flex-1 flex flex-col items-center justify-center gap-1 font-display text-[0.6rem] uppercase text-gray-500 hover:text-error transition-all duration-fast"
+          >
+            <LogOut size={20} className="shrink-0" />
+            <span className="whitespace-nowrap">Exit</span>
+          </button>
         </nav>
       </aside>
 
-      {/* FAB and Quick Action Menu */}
-      <div className="fixed bottom-xl right-xl flex flex-col items-end gap-md z-[100] max-md:bottom-[90px] max-md:right-md">
+      {/* FAB - Centered on Mobile Bottom Nav */}
+      <div className="fixed bottom-xl right-xl flex flex-col items-end gap-md z-[110] max-md:bottom-[30px] max-md:left-1/2 max-md:-translate-x-1/2 max-md:items-center">
         <motion.button
-          className={`w-[64px] h-[64px] rounded-sm bg-primary text-bg-deep flex items-center justify-center shadow-neon-strong transition-all duration-fast hover:scale-110 hover:bg-white max-md:w-[56px] max-md:h-[56px] ${showFabMenu ? 'bg-error text-white shadow-[0_0_20px_rgba(255,49,49,0.5)] rotate-0' : ''}`}
+          className={`w-[64px] h-[64px] rounded-full bg-primary text-bg-deep flex items-center justify-center shadow-neon-strong transition-all duration-fast hover:scale-110 hover:bg-white max-md:w-[60px] max-md:h-[60px] border-4 border-bg-deep ${showFabMenu ? 'bg-error text-white shadow-[0_0_20px_rgba(255,49,49,0.5)] rotate-0' : ''}`}
           onClick={() => setShowScan(true)}
           whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+          whileTap={{ scale: 0.9 }}
         >
-          <Plus size={24} />
+          <Plus size={32} />
         </motion.button>
       </div>
 
