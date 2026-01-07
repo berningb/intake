@@ -40,19 +40,19 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-lg bg-bg-deep relative overflow-hidden before:content-[''] before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_20%_20%,rgba(0,242,255,0.05)_0%,transparent_40%),radial-gradient(circle_at_80%_80%,rgba(255,0,255,0.05)_0%,transparent_40%)] before:pointer-events-none">
+    <div className="min-h-screen flex items-center justify-center p-md bg-bg-deep relative overflow-hidden before:content-[''] before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_20%_20%,rgba(0,242,255,0.05)_0%,transparent_40%),radial-gradient(circle_at_80%_80%,rgba(255,0,255,0.05)_0%,transparent_40%)] before:pointer-events-none px-4 sm:px-lg">
       <motion.div 
-        className="bg-bg-card rounded-md pt-[6rem] px-[2rem] pb-[4.5rem] w-full max-w-[420px] border border-gray-800 shadow-card relative z-10 after:content-[''] after:absolute after:-top-[1px] after:left-[20px] after:right-[20px] after:h-[1px] after:bg-gradient-to-r after:from-transparent after:via-primary after:to-transparent after:shadow-neon max-sm:p-xl max-sm:rounded-none max-sm:border-none max-sm:bg-transparent max-sm:shadow-none"
+        className="bg-bg-card rounded-md pt-[3rem] sm:pt-[6rem] px-[1.25rem] sm:px-[2rem] pb-[3rem] sm:pb-[4.5rem] w-full max-w-[420px] border border-gray-800 shadow-card relative z-10 after:content-[''] after:absolute after:-top-[1px] after:left-[20px] after:right-[20px] after:h-[1px] after:bg-gradient-to-r after:from-transparent after:via-primary after:to-transparent after:shadow-neon max-sm:p-md max-sm:rounded-none max-sm:border-none max-sm:bg-transparent max-sm:shadow-none"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
       >
-        <div className="text-center mb-[3.5rem]">
-          <h1 className="font-display text-[2.25rem] font-black text-white tracking-[0.25em] uppercase mb-md max-sm:text-[1.75rem]">intake</h1>
-          <p className="text-primary text-[0.7rem] font-display uppercase tracking-[0.4em] m-0 opacity-80">Mindful eating, simplified</p>
+        <div className="text-center mb-[2.5rem] sm:mb-[3.5rem]">
+          <h1 className="font-display text-[1.75rem] sm:text-[2.25rem] font-black text-white tracking-[0.2em] sm:tracking-[0.25em] uppercase mb-md">intake</h1>
+          <p className="text-primary text-[0.6rem] sm:text-[0.7rem] font-display uppercase tracking-[0.3em] sm:tracking-[0.4em] m-0 opacity-80">Mindful eating, simplified</p>
         </div>
 
-        <div className="flex flex-col gap-xl">
+        <div className="flex flex-col gap-lg sm:gap-xl">
           {error && (
             <motion.div 
               className="bg-error/10 text-error p-md rounded-sm text-[0.8rem] text-center border border-error/20 font-display uppercase"

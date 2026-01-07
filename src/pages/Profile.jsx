@@ -69,13 +69,13 @@ export function Profile() {
 
   return (
     <motion.div 
-      className="max-w-[800px] mx-auto pb-xl"
+      className="max-w-[800px] mx-auto pb-[110px] sm:pb-xl px-xs sm:px-0"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
     >
-      <header className="mb-[3rem] pb-md border-b border-gray-800">
-        <h1 className="text-[1.75rem] font-black font-display text-white uppercase tracking-[0.1em] mb-xs">Profile & Settings</h1>
-        <p className="text-primary m-0 text-[0.7rem] font-display uppercase tracking-[0.2em] opacity-70">Customize your daily targets and preferences</p>
+      <header className="mb-lg sm:mb-[3rem] pb-md border-b border-gray-800">
+        <h1 className="text-[1.5rem] sm:text-[1.75rem] font-black font-display text-white uppercase tracking-[0.1em] mb-xs">Profile</h1>
+        <p className="text-primary m-0 text-[0.6rem] sm:text-[0.7rem] font-display uppercase tracking-[0.2em] opacity-70">Customize your targets</p>
       </header>
 
       <section className="mb-[3rem]">
@@ -225,9 +225,9 @@ export function Profile() {
         </div>
       </section>
 
-      <div className="sticky bottom-xl flex justify-center pt-xl z-20">
+      <div className="sticky bottom-0 sm:bottom-xl flex justify-center pt-xl z-20 max-sm:pb-4">
         <button 
-          className="flex items-center gap-md py-[1.25rem] px-[3rem] bg-secondary text-white font-extrabold font-display uppercase tracking-[0.2em] rounded-sm shadow-[0_0_20px_var(--color-secondary-glow)] transition-all duration-fast hover:not-disabled:bg-white hover:not-disabled:text-secondary hover:not-disabled:shadow-[0_0_30px_var(--color-secondary-glow)] hover:not-disabled:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed max-sm:w-full"
+          className="flex items-center justify-center gap-md py-4 px-12 bg-secondary text-white font-extrabold font-display uppercase tracking-[0.15em] rounded-sm shadow-[0_0_20px_var(--color-secondary-glow)] transition-all duration-fast hover:not-disabled:bg-white hover:not-disabled:text-secondary hover:not-disabled:shadow-[0_0_30px_var(--color-secondary-glow)] hover:not-disabled:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed w-full max-w-[300px]"
           onClick={handleSave}
           disabled={loading}
         >
