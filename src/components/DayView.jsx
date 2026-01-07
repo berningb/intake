@@ -167,28 +167,28 @@ export function DayView({ onClose, isModal = false }) {
   const content = (
     <motion.div 
       key="content"
-      className={`max-w-[900px] w-full mx-auto ${isModal ? 'max-w-[700px] p-xl' : ''}`}
+      className={`max-w-[900px] w-full mx-auto px-xs sm:px-0 overflow-x-hidden ${isModal ? 'max-w-[700px] p-md sm:p-xl' : ''}`}
       variants={containerVariants}
       initial="hidden"
       animate="show"
       exit="exit"
     >
       <motion.header className="mb-md pb-md border-b border-gray-800" variants={itemVariants}>
-        <div className="flex justify-between items-start mb-sm">
-          <div className="greeting">
-            <h1 className="text-[1.5rem] font-black mb-xs font-display text-white uppercase tracking-[0.1em]">{format(currentDate, 'MMMM d, yyyy')}</h1>
-            <p className="text-primary m-0 text-[0.7rem] font-display uppercase tracking-[0.2em] opacity-70">
+        <div className="flex justify-between items-start mb-sm gap-md">
+          <div className="greeting min-w-0">
+            <h1 className="text-[1.25rem] sm:text-[1.5rem] font-black mb-xs font-display text-white uppercase tracking-[0.1em] truncate">{format(currentDate, 'MMMM d, yyyy')}</h1>
+            <p className="text-primary m-0 text-[0.6rem] sm:text-[0.7rem] font-display uppercase tracking-[0.2em] opacity-70">
               {isToday ? "Today's Progress" : "Viewing Past Performance"}
             </p>
           </div>
           {onClose && (
-            <button onClick={onClose} className="p-xs text-gray-500 bg-transparent rounded-sm transition-all duration-fast hover:bg-error/10 hover:text-error">
+            <button onClick={onClose} className="p-xs text-gray-500 bg-transparent rounded-sm transition-all duration-fast hover:bg-error/10 hover:text-error shrink-0">
               <X size={24} />
             </button>
           )}
         </div>
         
-        <div className="flex items-center gap-xs bg-bg-accent p-[4px] rounded-sm border border-gray-800 w-fit">
+        <div className="flex items-center gap-xs bg-bg-accent p-[4px] rounded-sm border border-gray-800 w-fit mb-md">
           <button 
             onClick={() => changeDate(-1)} 
             className="p-xs rounded-xs bg-transparent text-gray-500 flex items-center justify-center transition-all duration-fast hover:bg-gray-800 hover:text-primary disabled:opacity-10"
@@ -198,7 +198,7 @@ export function DayView({ onClose, isModal = false }) {
           </button>
           <div className="relative flex items-center">
             <button 
-              className="font-bold min-w-[140px] text-center text-[0.75rem] text-white font-display bg-transparent py-xs px-sm uppercase tracking-[0.05em] hover:bg-white/5"
+              className="font-bold min-w-[120px] sm:min-w-[140px] text-center text-[0.7rem] sm:text-[0.75rem] text-white font-display bg-transparent py-xs px-sm uppercase tracking-[0.05em] hover:bg-white/5"
               onClick={() => document.getElementById('day-view-date-picker')?.showPicker()}
             >
               {isToday ? 'Today' : format(currentDate, 'EEE, MMM d')}
@@ -227,7 +227,7 @@ export function DayView({ onClose, isModal = false }) {
         </div>
 
         {/* Weekly Glance Bar */}
-        <div className="flex gap-xs mt-md pb-xs overflow-x-auto no-scrollbar">
+        <div className="flex gap-xs pb-xs overflow-x-auto no-scrollbar">
           {weekDays.map((day) => {
             const dateStr = format(day, 'yyyy-MM-dd');
             const ledger = weekLedgers.get(dateStr);
@@ -273,16 +273,16 @@ export function DayView({ onClose, isModal = false }) {
                 key={dateStr}
                 onClick={() => setCurrentDate(day)}
                 title={hasData ? `${statusLabel}: ${Math.round(ledger.foods.reduce((sum, f) => sum + (f.finalNutrition?.calories || 0), 0))} cal` : 'No logs'}
-                className={`flex flex-col items-center gap-[6px] min-w-[45px] p-xs rounded-sm border transition-all duration-fast ${
+                className={`flex flex-col items-center gap-[6px] min-w-[42px] sm:min-w-[45px] p-xs rounded-sm border transition-all duration-fast ${
                   isSelected 
                     ? 'bg-primary/10 border-primary/50' 
                     : 'bg-transparent border-transparent hover:bg-white/5'
                 }`}
               >
-                <span className={`text-[0.55rem] font-bold font-display uppercase tracking-tighter ${isSelected ? 'text-primary' : 'text-gray-500'}`}>
+                <span className={`text-[0.5rem] sm:text-[0.55rem] font-bold font-display uppercase tracking-tighter ${isSelected ? 'text-primary' : 'text-gray-500'}`}>
                   {format(day, 'EEE')}
                 </span>
-                <span className={`text-[0.8rem] font-black font-display ${isSelected ? 'text-white' : 'text-gray-400'}`}>
+                <span className={`text-[0.75rem] sm:text-[0.8rem] font-black font-display ${isSelected ? 'text-white' : 'text-gray-400'}`}>
                   {format(day, 'd')}
                 </span>
                 <motion.div 
@@ -320,72 +320,74 @@ export function DayView({ onClose, isModal = false }) {
         </div>
       </motion.header>
 
-      <motion.section className="bg-bg-card rounded-md p-lg border border-gray-800 mb-md relative overflow-hidden" variants={itemVariants}>
-        <div className="flex items-center gap-2xl mb-lg pb-lg border-b border-bg-accent max-md:flex-col max-md:gap-xl">
-          <div className="relative w-[120px] h-[120px] shrink-0">
-            <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-              <circle
-                cx="50"
-                cy="50"
-                r="42"
-                fill="none"
-                stroke="var(--color-bg-accent)"
-                strokeWidth="8"
-              />
-              <motion.circle
-                cx="50"
-                cy="50"
-                r="42"
-                fill="none"
-                stroke={caloriePercent > 100 ? 'var(--color-error)' : 'var(--color-primary)'}
-                strokeWidth="8"
-                strokeLinecap="round"
-                initial={{ strokeDasharray: "0 264" }}
-                animate={{ strokeDasharray: `${caloriePercent * 2.64} 264` }}
-                transition={{ duration: 1.5, ease: "easeOut" }}
-                className="drop-shadow-[0_0_8px_var(--color-primary-glow)]"
-              />
-            </svg>
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <motion.span 
-                key={totals.calories}
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                className="font-display text-[2rem] font-black text-white leading-none shadow-[0_0_15px_rgba(255,255,255,0.3)]"
-              >
-                {Math.round(totals.calories)}
-              </motion.span>
-              <span className="text-[0.6rem] font-display uppercase tracking-[0.1em] text-gray-500 mt-[2px]">/ {metrics.calories || '---'} CAL</span>
+      <motion.section className="bg-bg-card rounded-md p-sm sm:p-lg border border-gray-800 mb-md relative overflow-hidden" variants={itemVariants}>
+        <div className="flex items-center gap-md sm:gap-2xl mb-lg pb-lg border-b border-bg-accent max-md:flex-col max-md:gap-md">
+          <div className="flex items-center gap-md w-full sm:w-auto">
+            <div className="relative w-[80px] h-[80px] sm:w-[120px] sm:h-[120px] shrink-0">
+              <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="42"
+                  fill="none"
+                  stroke="var(--color-bg-accent)"
+                  strokeWidth="8"
+                />
+                <motion.circle
+                  cx="50"
+                  cy="50"
+                  r="42"
+                  fill="none"
+                  stroke={caloriePercent > 100 ? 'var(--color-error)' : 'var(--color-primary)'}
+                  strokeWidth="8"
+                  strokeLinecap="round"
+                  initial={{ strokeDasharray: "0 264" }}
+                  animate={{ strokeDasharray: `${caloriePercent * 2.64} 264` }}
+                  transition={{ duration: 1.5, ease: "easeOut" }}
+                  className="drop-shadow-[0_0_8px_var(--color-primary-glow)]"
+                />
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <motion.span 
+                  key={totals.calories}
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  className="font-display text-[1.1rem] sm:text-[2rem] font-black text-white leading-none shadow-[0_0_15px_rgba(255,255,255,0.3)]"
+                >
+                  {Math.round(totals.calories)}
+                </motion.span>
+                <span className="text-[0.45rem] sm:text-[0.6rem] font-display uppercase tracking-[0.1em] text-gray-500 mt-[2px]">/ {metrics.calories || '---'}</span>
+              </div>
             </div>
-          </div>
-          
-          <div className="flex flex-1 items-center gap-md max-md:w-full max-md:justify-center">
-            <Flame className="w-[32px] h-[32px] text-primary drop-shadow-[0_0_5px_var(--color-primary-glow)]" />
-            <div>
-              <span className="block font-display text-[1.5rem] font-black text-white leading-[1.1] tracking-[-0.02em]">
-                {metrics.calories ? Math.max(0, metrics.calories - totals.calories) : '---'}
-              </span>
-              <span className="block font-display text-[0.6rem] uppercase tracking-[0.2em] text-gray-500">calories remaining</span>
+            
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2">
+                <Flame size={20} className="text-primary drop-shadow-[0_0_5px_var(--color-primary-glow)] sm:w-[32px] sm:h-[32px]" />
+                <span className="font-display text-[1.1rem] sm:text-[1.5rem] font-black text-white leading-none tracking-[-0.02em]">
+                  {metrics.calories ? Math.max(0, metrics.calories - totals.calories) : '---'}
+                </span>
+              </div>
+              <span className="font-display text-[0.5rem] sm:text-[0.6rem] uppercase tracking-[0.2em] text-gray-500 mt-1">calories left</span>
             </div>
           </div>
           
           {dayStatus.icon && (
-            <div className={`flex flex-col gap-xs p-md rounded-sm ml-auto min-w-[200px] border border-white/5 bg-white/2 max-md:ml-0 max-md:w-full ${
+            <div className={`flex flex-col gap-xs p-md rounded-sm border border-white/5 bg-white/2 w-full sm:min-w-[200px] ${
               dayStatus.status === 'good' ? 'text-success border-success/20 bg-success/5' :
               dayStatus.status === 'caution' ? 'text-warning border-warning/20 bg-warning/5' :
               dayStatus.status === 'over' ? 'text-error border-error/20 bg-error/5' :
               dayStatus.status === 'under' ? 'text-primary border-primary/20 bg-primary/5' : ''
             }`}>
-              <div className="flex items-center gap-sm font-display font-black text-[0.75rem] uppercase tracking-[0.1em]">
-                <dayStatus.icon size={20} />
+              <div className="flex items-center gap-sm font-display font-black text-[0.65rem] sm:text-[0.75rem] uppercase tracking-[0.1em]">
+                <dayStatus.icon size={16} className="sm:w-[18px] sm:h-[18px]" />
                 <span>{dayStatus.label}</span>
               </div>
-              <p className="text-[0.7rem] m-0 opacity-60 leading-[1.5] text-gray-300">{dayStatus.description}</p>
+              <p className="text-[0.6rem] sm:text-[0.7rem] m-0 opacity-60 leading-[1.4] text-gray-300">{dayStatus.description}</p>
             </div>
           )}
         </div>
 
-        <div className="grid grid-cols-4 gap-xl max-md:grid-cols-2 max-md:gap-md">
+        <div className="grid grid-cols-4 gap-sm sm:gap-xl max-md:grid-cols-2 max-md:gap-md">
           <LiquidProgressBar 
             label="Protein"
             current={totals.protein}
@@ -413,7 +415,7 @@ export function DayView({ onClose, isModal = false }) {
             current={totals.fat}
             target={metrics.fat}
             percentage={getMacroPercent(totals.fat, metrics.fat)}
-            icon={FlaskConical}
+            icon={Droplets}
             colorClass="from-rose-600 to-rose-400"
             glowColor="rgba(225, 29, 72, 0.4)"
             segments={stats.fat.avgEntries}
@@ -435,33 +437,31 @@ export function DayView({ onClose, isModal = false }) {
         </div>
       </motion.section>
 
-      <motion.section className="bg-bg-card rounded-md p-xl border border-gray-800 mb-lg" variants={itemVariants}>
-        <div className="flex justify-between items-center mb-md">
-          <h2 className="text-[0.9rem] font-black text-white font-display uppercase tracking-[0.1em]">Meals</h2>
-          <div className="flex gap-sm">
-            <button className="flex items-center gap-sm py-[6px] px-md bg-transparent text-primary border border-primary rounded-xs font-extrabold font-display text-[0.65rem] uppercase tracking-[0.1em] transition-all duration-fast hover:bg-primary hover:text-bg-deep hover:shadow-neon" onClick={() => setShowScan(true)}>
-              <Plus size={18} />
-              Search & Scan
-            </button>
-          </div>
+      <motion.section className="bg-bg-card rounded-md p-md sm:p-xl border border-gray-800 mb-lg" variants={itemVariants}>
+        <div className="flex justify-between items-center mb-md gap-sm">
+          <h2 className="text-[0.85rem] sm:text-[0.9rem] font-black text-white font-display uppercase tracking-[0.1em]">Meals</h2>
+          <button className="flex items-center gap-xs sm:gap-sm py-[6px] px-sm sm:px-md bg-transparent text-primary border border-primary rounded-xs font-extrabold font-display text-[0.6rem] sm:text-[0.65rem] uppercase tracking-[0.1em] transition-all duration-fast hover:bg-primary hover:text-bg-deep hover:shadow-neon" onClick={() => setShowScan(true)}>
+            <Plus size={16} />
+            Search
+          </button>
         </div>
 
         {(!currentLedger?.foods || currentLedger.foods.length === 0) ? (
-          <div className="text-center p-xl text-gray-500 font-display text-[0.75rem] uppercase tracking-[0.1em]">
+          <div className="text-center py-xl px-md text-gray-500 font-display text-[0.7rem] sm:text-[0.75rem] uppercase tracking-[0.1em]">
             <p className="mb-md">No meals logged yet</p>
             <button className="btn-primary" onClick={() => setShowScan(true)}>
-              Log your first meal
+              Log first meal
             </button>
           </div>
         ) : (
-          <div className="flex flex-col gap-md max-h-[500px] overflow-y-auto pr-xs scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-transparent">
+          <div className="flex flex-col gap-sm sm:gap-md max-h-[500px] overflow-y-auto pr-xs scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-transparent">
             {currentLedger.foods.map((food, index) => {
               const nutrition = food.finalNutrition || { calories: 0, protein: 0, carbs: 0, fat: 0 };
               const quality = getFoodQuality(nutrition);
               return (
                 <motion.div 
                   key={food.id} 
-                  className={`flex items-center gap-md p-md bg-bg-card rounded-sm transition-all duration-fast border border-gray-800 relative hover:border-primary hover:bg-primary/3 hover:translate-x-1 before:content-[''] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-[3px] before:bg-gray-700 ${
+                  className={`flex items-center gap-sm sm:gap-md p-sm sm:p-md bg-bg-card rounded-sm transition-all duration-fast border border-gray-800 relative hover:border-primary hover:bg-primary/3 hover:translate-x-1 before:content-[''] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-[3px] before:bg-gray-700 ${
                     quality === 'good' ? 'before:bg-success' :
                     quality === 'caution' ? 'before:bg-warning' :
                     quality === 'bad' ? 'before:bg-error' : ''
@@ -471,16 +471,22 @@ export function DayView({ onClose, isModal = false }) {
                   transition={{ delay: index * 0.05 }}
                 >
                   {food.imageUrl && (
-                    <img src={food.imageUrl} alt={food.name} className="w-[48px] h-[48px] rounded-xs object-cover shrink-0 border border-gray-800" />
+                    <img src={food.imageUrl} alt={food.name} className="w-[40px] h-[40px] sm:w-[48px] sm:h-[48px] rounded-xs object-cover shrink-0 border border-gray-800" />
                   )}
                   <div className="flex-1 min-w-0">
-                    <span className="block font-bold text-white font-display text-[0.85rem] mb-[2px] uppercase tracking-[0.05em]">{food.name}</span>
-                    <span className="text-[0.65rem] text-gray-500 font-display uppercase tracking-[0.05em]">
-                      {food.portionDescription && `${food.portionDescription} • `}
-                      {nutrition.calories} CAL
-                    </span>
+                    <span className="block font-bold text-white font-display text-[0.75rem] sm:text-[0.85rem] mb-[2px] uppercase tracking-[0.05em] truncate">{food.name}</span>
+                    <div className="flex items-center gap-md">
+                      <span className="text-[0.6rem] sm:text-[0.65rem] text-gray-500 font-display uppercase tracking-[0.05em] whitespace-nowrap">
+                        {nutrition.calories} CAL
+                      </span>
+                      <div className="flex gap-sm font-display font-extrabold text-[0.6rem] sm:text-[0.75rem] text-primary sm:hidden">
+                        <span>{nutrition.protein}g P</span>
+                        <span>{nutrition.carbs}g C</span>
+                        <span>{nutrition.fat}g F</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex gap-md font-display font-extrabold text-[0.75rem] text-primary max-md:hidden">
+                  <div className="flex gap-md font-display font-extrabold text-[0.75rem] text-primary max-sm:hidden">
                     <span className="whitespace-nowrap">{nutrition.protein}g P</span>
                     <span className="whitespace-nowrap">{nutrition.carbs}g C</span>
                     <span className="whitespace-nowrap">{nutrition.fat}g F</span>
