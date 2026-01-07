@@ -50,17 +50,25 @@ export function AuthProvider({ children }) {
   const [lastXpGain, setLastXpGain] = useState(null);
 
   async function fetchUserData(uid) {
-    const userDoc = await getDoc(doc(db, 'users', uid));
-    if (userDoc.exists()) {
-      const data = userDoc.data();
-      setUserData({
-        ...data,
-        id: uid,
-        createdAt: data.createdAt?.toDate() || new Date(),
-        updatedAt: data.updatedAt?.toDate() || new Date()
-      });
+    // If db is not initialized (mock mode or init failed), skip fetch
+    if (!db || Object.keys(db).length === 0) return false;
+    
+    try {
+      const userDoc = await getDoc(doc(db, 'users', uid));
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        setUserData({
+          ...data,
+          id: uid,
+          createdAt: data.createdAt?.toDate() || new Date(),
+          updatedAt: data.updatedAt?.toDate() || new Date()
+        });
+      }
+      return userDoc.exists();
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+      return false;
     }
-    return userDoc.exists();
   }
 
   async function createUserProfile(user, isGuestUser = false) {
@@ -235,29 +243,34 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     // Handle both real Firebase auth and mock auth
     const handleAuthChange = async (user) => {
-      if (user) {
-        setCurrentUser(user);
-        setIsGuest(user.isAnonymous);
-        await fetchUserData(user.uid);
-        setLoading(false);
-      } else if (IS_MOCK_MODE) {
-        const savedMockUser = localStorage.getItem('intake_mock_user');
-        if (savedMockUser) {
-          const parsed = JSON.parse(savedMockUser);
-          
-          // CRITICAL: If the saved user is a guest, ignore it and force a clean state
-          if (parsed.isGuest) {
-            localStorage.removeItem('intake_mock_user');
+      try {
+        if (user) {
+          setCurrentUser(user);
+          setIsGuest(user.isAnonymous);
+          await fetchUserData(user.uid);
+        } else if (IS_MOCK_MODE) {
+          const savedMockUser = localStorage.getItem('intake_mock_user');
+          if (savedMockUser) {
+            const parsed = JSON.parse(savedMockUser);
+            
+            // CRITICAL: If the saved user is a guest, ignore it and force a clean state
+            if (parsed.isGuest) {
+              localStorage.removeItem('intake_mock_user');
+              setCurrentUser(null);
+              setUserData(null);
+              setIsGuest(false);
+            } else {
+              setCurrentUser(parsed.currentUser);
+              setUserData({
+                ...parsed.userData,
+                createdAt: new Date(parsed.userData.createdAt),
+                updatedAt: new Date(parsed.userData.updatedAt)
+              });
+              setIsGuest(false);
+            }
+          } else {
             setCurrentUser(null);
             setUserData(null);
-            setIsGuest(false);
-          } else {
-            setCurrentUser(parsed.currentUser);
-            setUserData({
-              ...parsed.userData,
-              createdAt: new Date(parsed.userData.createdAt),
-              updatedAt: new Date(parsed.userData.updatedAt)
-            });
             setIsGuest(false);
           }
         } else {
@@ -265,11 +278,13 @@ export function AuthProvider({ children }) {
           setUserData(null);
           setIsGuest(false);
         }
-        setLoading(false);
-      } else {
+      } catch (error) {
+        console.error("Auth state change handler failed:", error);
+        // Ensure we don't get stuck in loading state even on error
         setCurrentUser(null);
         setUserData(null);
         setIsGuest(false);
+      } finally {
         setLoading(false);
       }
     };
