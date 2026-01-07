@@ -289,60 +289,60 @@ export function Scan({ onClose, isModal = false }) {
     <div className={`max-w-[600px] w-full mx-auto flex flex-col h-full overflow-hidden ${isModal ? 'max-w-full p-0 h-full' : ''}`}>
       <div className="mb-md pb-md border-b border-gray-800 shrink-0">
         <div className="flex justify-between items-center">
-          <h1 className="text-[1.5rem] font-black font-display text-white uppercase tracking-[0.1em] mb-xs">Track Food</h1>
+          <h1 className="text-[1.25rem] sm:text-[1.5rem] font-black font-display text-white uppercase tracking-[0.1em] mb-xs">Track Food</h1>
           {(isModal || onClose) && (
-            <button className="p-xs text-gray-500 bg-transparent rounded-sm transition-all duration-fast hover:bg-error/10 hover:text-error" onClick={onClose || (() => navigate(-1))}>
+            <button className="p-xs text-gray-500 bg-transparent rounded-sm transition-all duration-fast hover:bg-error/10 hover:text-error shrink-0" onClick={onClose || (() => navigate(-1))}>
               <X size={24} />
             </button>
           )}
         </div>
-        <p className="text-primary m-0 text-[0.7rem] font-display uppercase tracking-[0.2em] opacity-70">Search or scan to add food</p>
+        <p className="text-primary m-0 text-[0.6rem] sm:text-[0.7rem] font-display uppercase tracking-[0.2em] opacity-70">Search or scan to add food</p>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-md mb-lg bg-bg-card p-[6px] rounded-md border border-gray-800 shrink-0">
+      <div className="flex gap-xs sm:gap-md mb-md sm:mb-lg bg-bg-card p-[4px] sm:p-[6px] rounded-md border border-gray-800 shrink-0">
         <button
-          className={`flex-1 flex items-center justify-center gap-sm p-3 text-gray-500 font-extrabold font-display uppercase tracking-[0.1em] text-[0.7rem] rounded-sm transition-colors duration-150 ease-out hover:text-white hover:bg-white/3 ${activeTab === 'search' ? 'bg-primary text-bg-deep shadow-neon' : 'bg-transparent'}`}
+          className={`flex-1 flex items-center justify-center gap-xs sm:gap-sm p-2 sm:p-3 text-gray-500 font-extrabold font-display uppercase tracking-[0.1em] text-[0.6rem] sm:text-[0.7rem] rounded-sm transition-colors duration-150 ease-out hover:text-white hover:bg-white/3 ${activeTab === 'search' ? 'bg-primary text-bg-deep shadow-neon' : 'bg-transparent'}`}
           onClick={() => { setActiveTab('search'); clearResults(); }}
         >
-          <Search size={18} />
+          <Search size={16} />
           Search
         </button>
         <button
-          className={`flex-1 flex items-center justify-center gap-sm p-3 text-gray-500 font-extrabold font-display uppercase tracking-[0.1em] text-[0.7rem] rounded-sm transition-colors duration-150 ease-out hover:text-white hover:bg-white/3 ${activeTab === 'scan' ? 'bg-primary text-bg-deep shadow-neon' : 'bg-transparent'}`}
+          className={`flex-1 flex items-center justify-center gap-xs sm:gap-sm p-2 sm:p-3 text-gray-500 font-extrabold font-display uppercase tracking-[0.1em] text-[0.6rem] sm:text-[0.7rem] rounded-sm transition-colors duration-150 ease-out hover:text-white hover:bg-white/3 ${activeTab === 'scan' ? 'bg-primary text-bg-deep shadow-neon' : 'bg-transparent'}`}
           onClick={() => { setActiveTab('scan'); clearResults(); }}
         >
-          <ScanBarcode size={18} />
+          <ScanBarcode size={16} />
           Scan
         </button>
         <button
-          className={`flex-1 flex items-center justify-center gap-sm p-3 text-gray-500 font-extrabold font-display uppercase tracking-[0.1em] text-[0.7rem] rounded-sm transition-colors duration-150 ease-out hover:text-white hover:bg-white/3 ${activeTab === 'manual' ? 'bg-primary text-bg-deep shadow-neon' : 'bg-transparent'}`}
+          className={`flex-1 flex items-center justify-center gap-xs sm:gap-sm p-2 sm:p-3 text-gray-500 font-extrabold font-display uppercase tracking-[0.1em] text-[0.6rem] sm:text-[0.7rem] rounded-sm transition-colors duration-150 ease-out hover:text-white hover:bg-white/3 ${activeTab === 'manual' ? 'bg-primary text-bg-deep shadow-neon' : 'bg-transparent'}`}
           onClick={() => { setActiveTab('manual'); clearResults(); }}
         >
-          <Plus size={18} />
+          <Plus size={16} />
           Manual
         </button>
       </div>
 
       {/* Search Tab */}
       {activeTab === 'search' && !product && (
-        <div className="flex flex-col gap-[3rem] shrink-0">
-          <div className="flex gap-md">
+        <div className="flex flex-col gap-md sm:gap-[3rem] shrink-0">
+          <div className="flex gap-sm sm:gap-md">
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search for food..."
-              className="flex-1 p-[1.25rem] bg-bg-accent border border-gray-800 text-white rounded-sm font-body transition-all duration-fast focus:border-primary focus:shadow-neon outline-none"
+              className="flex-1 p-3 sm:p-[1.25rem] bg-bg-accent border border-gray-800 text-white rounded-sm font-body transition-all duration-fast focus:border-primary focus:shadow-neon outline-none text-sm"
               autoFocus
             />
             {loading ? (
-              <div className="flex items-center justify-center px-5 bg-bg-card text-primary border border-gray-800 rounded-sm transition-all duration-fast">
-                <Loader2 size={20} className="animate-spin shadow-neon" />
+              <div className="flex items-center justify-center px-4 sm:px-5 bg-bg-card text-primary border border-gray-800 rounded-sm">
+                <Loader2 size={18} className="animate-spin shadow-neon" />
               </div>
             ) : (
-              <div className="flex items-center justify-center px-5 bg-bg-card text-primary border border-gray-800 rounded-sm transition-all duration-fast">
-                <Search size={20} />
+              <div className="flex items-center justify-center px-4 sm:px-5 bg-bg-card text-primary border border-gray-800 rounded-sm">
+                <Search size={18} />
               </div>
             )}
           </div>
@@ -385,69 +385,69 @@ export function Scan({ onClose, isModal = false }) {
 
       {/* Manual Tab */}
       {activeTab === 'manual' && (
-        <div className="flex-1 overflow-y-auto p-xs">
-          <form onSubmit={handleManualSubmit} className="flex flex-col gap-lg">
+        <div className="flex-1 overflow-y-auto no-scrollbar p-xs">
+          <form onSubmit={handleManualSubmit} className="flex flex-col gap-md sm:gap-lg">
             <div className="flex flex-col gap-xs">
-              <label className="text-[0.7rem] font-extrabold font-display uppercase tracking-[0.1em] text-gray-500">Food Name</label>
+              <label className="text-[0.65rem] sm:text-[0.7rem] font-extrabold font-display uppercase tracking-[0.1em] text-gray-500">Food Name</label>
               <input
                 type="text"
                 value={manualName}
                 onChange={(e) => setManualName(e.target.value)}
                 placeholder="e.g. Grilled Chicken"
-                className="p-[1.25rem] bg-bg-accent border border-gray-800 text-white rounded-sm font-body transition-all duration-fast focus:border-primary focus:shadow-neon outline-none"
+                className="p-3 sm:p-[1.25rem] bg-bg-accent border border-gray-800 text-white rounded-sm font-body transition-all duration-fast focus:border-primary focus:shadow-neon outline-none text-sm"
                 required
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-md">
+            <div className="grid grid-cols-2 gap-md sm:gap-md">
               <div className="flex flex-col gap-xs">
-                <label className="text-[0.7rem] font-extrabold font-display uppercase tracking-[0.1em] text-gray-500">Calories</label>
+                <label className="text-[0.65rem] sm:text-[0.7rem] font-extrabold font-display uppercase tracking-[0.1em] text-gray-500">Calories</label>
                 <input
                   type="number"
                   value={manualCalories}
                   onChange={(e) => setManualCalories(e.target.value)}
                   placeholder="0"
-                  className="p-[1.25rem] bg-bg-accent border border-gray-800 text-white rounded-sm font-body transition-all duration-fast focus:border-primary focus:shadow-neon outline-none"
+                  className="p-3 sm:p-[1.25rem] bg-bg-accent border border-gray-800 text-white rounded-sm font-body transition-all duration-fast focus:border-primary focus:shadow-neon outline-none text-sm"
                 />
               </div>
               <div className="flex flex-col gap-xs">
-                <label className="text-[0.7rem] font-extrabold font-display uppercase tracking-[0.1em] text-gray-500">Protein (g)</label>
+                <label className="text-[0.65rem] sm:text-[0.7rem] font-extrabold font-display uppercase tracking-[0.1em] text-gray-500">Protein (g)</label>
                 <input
                   type="number"
                   value={manualProtein}
                   onChange={(e) => setManualProtein(e.target.value)}
                   placeholder="0"
-                  className="p-[1.25rem] bg-bg-accent border border-gray-800 text-white rounded-sm font-body transition-all duration-fast focus:border-primary focus:shadow-neon outline-none"
+                  className="p-3 sm:p-[1.25rem] bg-bg-accent border border-gray-800 text-white rounded-sm font-body transition-all duration-fast focus:border-primary focus:shadow-neon outline-none text-sm"
                 />
               </div>
               <div className="flex flex-col gap-xs">
-                <label className="text-[0.7rem] font-extrabold font-display uppercase tracking-[0.1em] text-gray-500">Carbs (g)</label>
+                <label className="text-[0.65rem] sm:text-[0.7rem] font-extrabold font-display uppercase tracking-[0.1em] text-gray-500">Carbs (g)</label>
                 <input
                   type="number"
                   value={manualCarbs}
                   onChange={(e) => setManualCarbs(e.target.value)}
                   placeholder="0"
-                  className="p-[1.25rem] bg-bg-accent border border-gray-800 text-white rounded-sm font-body transition-all duration-fast focus:border-primary focus:shadow-neon outline-none"
+                  className="p-3 sm:p-[1.25rem] bg-bg-accent border border-gray-800 text-white rounded-sm font-body transition-all duration-fast focus:border-primary focus:shadow-neon outline-none text-sm"
                 />
               </div>
               <div className="flex flex-col gap-xs">
-                <label className="text-[0.7rem] font-extrabold font-display uppercase tracking-[0.1em] text-gray-500">Fat (g)</label>
+                <label className="text-[0.65rem] sm:text-[0.7rem] font-extrabold font-display uppercase tracking-[0.1em] text-gray-500">Fat (g)</label>
                 <input
                   type="number"
                   value={manualFat}
                   onChange={(e) => setManualFat(e.target.value)}
                   placeholder="0"
-                  className="p-[1.25rem] bg-bg-accent border border-gray-800 text-white rounded-sm font-body transition-all duration-fast focus:border-primary focus:shadow-neon outline-none"
+                  className="p-3 sm:p-[1.25rem] bg-bg-accent border border-gray-800 text-white rounded-sm font-body transition-all duration-fast focus:border-primary focus:shadow-neon outline-none text-sm"
                 />
               </div>
             </div>
 
             <button 
               type="submit" 
-              className="flex items-center justify-center gap-md w-full p-xl bg-secondary text-white rounded-sm font-extrabold font-display uppercase tracking-[0.2em] shadow-[0_0_20px_var(--color-secondary-glow)] transition-all duration-fast hover:bg-white hover:text-secondary hover:shadow-[0_0_30px_var(--color-secondary-glow)] disabled:opacity-30 disabled:cursor-not-allowed"
+              className="flex items-center justify-center gap-md w-full p-3 sm:p-xl bg-secondary text-white rounded-sm font-extrabold font-display uppercase tracking-[0.2em] shadow-[0_0_20px_var(--color-secondary-glow)] transition-all duration-fast hover:bg-white hover:text-secondary disabled:opacity-30 disabled:cursor-not-allowed"
               disabled={!manualName.trim()}
             >
-              <Plus size={20} />
+              <Plus size={18} />
               Add Food
             </button>
           </form>
@@ -477,7 +477,7 @@ export function Scan({ onClose, isModal = false }) {
       <AnimatePresence mode="wait">
         {searchResults.length > 0 && !product && (
           <motion.div 
-            className="flex flex-col gap-md flex-1 overflow-y-auto overflow-x-hidden p-xs mt-lg scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-transparent"
+            className="flex flex-col gap-sm sm:gap-md flex-1 overflow-y-auto no-scrollbar p-xs mt-md sm:mt-lg scrollbar-thin scrollbar-thumb-gray-800 scrollbar-track-transparent"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -487,7 +487,7 @@ export function Scan({ onClose, isModal = false }) {
               return (
                 <motion.button
                   key={`${item.barcode}-${index}`}
-                  className={`flex items-center justify-between gap-lg p-lg bg-bg-card border border-gray-800 rounded-md text-left transition-all duration-fast cursor-pointer relative overflow-hidden min-h-[80px] hover:border-primary hover:bg-primary/5 hover:translate-x-[6px] hover:shadow-[0_5px_15px_rgba(0,0,0,0.3)] before:content-[''] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-[4px] before:transition-all before:duration-fast ${
+                  className={`flex items-center justify-between gap-sm sm:gap-lg p-sm sm:p-lg bg-bg-card border border-gray-800 rounded-md text-left transition-all duration-fast cursor-pointer relative overflow-hidden min-h-[70px] sm:min-h-[80px] hover:border-primary hover:bg-primary/5 before:content-[''] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-[3px] sm:before:w-[4px] before:transition-all before:duration-fast ${
                     quality === 'good' ? 'before:bg-success' :
                     quality === 'caution' ? 'before:bg-warning' :
                     quality === 'bad' ? 'before:bg-error' : 'before:bg-gray-700'
@@ -497,29 +497,29 @@ export function Scan({ onClose, isModal = false }) {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: (index % 20) * 0.03 }}
                 >
-                  <div className="flex items-center gap-lg flex-1 min-w-0">
+                  <div className="flex items-center gap-sm sm:gap-lg flex-1 min-w-0">
                     {item.image ? (
-                      <img src={item.image} alt={item.name} className="w-[56px] h-[56px] object-contain rounded-sm bg-white shrink-0 border border-gray-800" />
+                      <img src={item.image} alt={item.name} className="w-[48px] h-[48px] sm:w-[56px] sm:h-[56px] object-contain rounded-sm bg-white shrink-0 border border-gray-800" />
                     ) : (
-                      <div className="w-[56px] h-[56px] flex items-center justify-center bg-bg-accent rounded-sm text-gray-700 shrink-0 border border-gray-800">
-                        <Camera size={20} />
+                      <div className="w-[48px] h-[48px] sm:w-[56px] sm:h-[56px] flex items-center justify-center bg-bg-accent rounded-sm text-gray-700 shrink-0 border border-gray-800">
+                        <Camera size={16} />
                       </div>
                     )}
-                    <div className="flex-1 min-w-0 flex flex-col gap-[2px]">
-                      <span className="font-extrabold text-white text-[0.95rem] font-display truncate uppercase tracking-[0.05em]">{item.name}</span>
-                      {item.brand && <span className="text-[0.7rem] text-primary truncate opacity-80 uppercase tracking-[0.05em] mb-[2px]">{item.brand}</span>}
-                      <div className="flex gap-md text-[0.7rem] text-gray-500 font-display font-semibold uppercase tracking-[0.05em]">
+                    <div className="flex-1 min-w-0 flex flex-col gap-[1px] sm:gap-[2px]">
+                      <span className="font-extrabold text-white text-[0.85rem] sm:text-[0.95rem] font-display truncate uppercase tracking-[0.05em]">{item.name}</span>
+                      {item.brand && <span className="text-[0.65rem] sm:text-[0.7rem] text-primary truncate opacity-80 uppercase tracking-[0.05em] mb-[1px]">{item.brand}</span>}
+                      <div className="flex gap-sm sm:gap-md text-[0.6rem] sm:text-[0.7rem] text-gray-500 font-display font-semibold uppercase tracking-[0.05em]">
                         <span>{Math.round(item.protein || 0)}g P</span>
                         <span>{Math.round(item.carbs || 0)}g C</span>
                         <span>{Math.round(item.fat || 0)}g F</span>
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-lg shrink-0">
-                    <span className="text-[1.1rem] font-black text-white font-display whitespace-nowrap text-right">
-                      {Math.round(item.calories || 0)} <small className="text-[0.65rem] text-gray-500 uppercase block leading-none">CAL</small>
+                  <div className="flex items-center gap-sm sm:gap-lg shrink-0">
+                    <span className="text-[0.9rem] sm:text-[1.1rem] font-black text-white font-display whitespace-nowrap text-right leading-tight">
+                      {Math.round(item.calories || 0)} <small className="text-[0.55rem] sm:text-[0.65rem] text-gray-500 uppercase block leading-none">CAL</small>
                     </span>
-                    <Plus className="text-primary opacity-30 transition-all duration-fast group-hover:opacity-100 group-hover:scale-[1.2] group-hover:rotate-90" size={20} />
+                    <Plus className="text-primary opacity-30 sm:block hidden" size={20} />
                   </div>
                 </motion.button>
               );
@@ -527,14 +527,14 @@ export function Scan({ onClose, isModal = false }) {
             
             {hasMore && (
               <button 
-                className="w-full p-md bg-bg-card border border-gray-800 text-primary rounded-sm font-display font-extrabold uppercase tracking-[0.1em] text-[0.7rem] mt-xl mb-[4.5rem] transition-all duration-fast flex items-center justify-center hover:not-disabled:bg-primary hover:not-disabled:text-bg-deep hover:not-disabled:shadow-neon disabled:opacity-50 disabled:cursor-not-allowed" 
+                className="w-full p-3 sm:p-md bg-bg-card border border-gray-800 text-primary rounded-sm font-display font-extrabold uppercase tracking-[0.1em] text-[0.65rem] sm:text-[0.7rem] mt-md mb-[5rem] transition-all duration-fast flex items-center justify-center hover:not-disabled:bg-primary hover:not-disabled:text-bg-deep disabled:opacity-50" 
                 onClick={loadMore}
                 disabled={loading}
               >
                 {loading ? (
-                  <Loader2 size={20} className="animate-spin shadow-neon" />
+                  <Loader2 size={18} className="animate-spin shadow-neon" />
                 ) : (
-                  'Load More Results'
+                  'Load More'
                 )}
               </button>
             )}
