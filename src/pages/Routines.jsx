@@ -166,26 +166,26 @@ export function Routines({ onClose, isModal = false }) {
   };
 
   const renderFormContent = () => (
-    <div className="p-xl flex flex-col h-full">
-      <div className="mb-xl">
-        <label className="block text-[0.75rem] font-extrabold font-display uppercase tracking-[0.1em] text-gray-500 mb-sm">Routine Name</label>
+    <div className="p-md sm:p-xl flex flex-col h-full">
+      <div className="mb-lg sm:mb-xl">
+        <label className="block text-[0.7rem] sm:text-[0.75rem] font-extrabold font-display uppercase tracking-[0.1em] text-gray-500 mb-sm">Routine Name</label>
         <input
           type="text"
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
-          placeholder="e.g., Push Day, Leg Day"
+          placeholder="e.g., Push Day"
           autoFocus
-          className="w-full p-4 bg-bg-accent border border-gray-800 text-white rounded-sm transition-all duration-fast focus:border-primary focus:shadow-neon outline-none"
+          className="w-full p-3 sm:p-4 bg-bg-accent border border-gray-800 text-white rounded-sm transition-all duration-fast focus:border-primary focus:shadow-neon outline-none"
         />
       </div>
 
-      <div className="mb-xl">
-        <label className="block text-[0.75rem] font-extrabold font-display uppercase tracking-[0.1em] text-gray-500 mb-md">Quick Add Exercises</label>
-        <div className="flex gap-xs flex-wrap mb-md">
+      <div className="mb-lg sm:mb-xl">
+        <label className="block text-[0.7rem] sm:text-[0.75rem] font-extrabold font-display uppercase tracking-[0.1em] text-gray-500 mb-md">Quick Add</label>
+        <div className="flex gap-xs flex-wrap mb-md max-h-[120px] overflow-y-auto no-scrollbar">
           {dynamicCategories.map(cat => (
             <button
               key={cat.name}
-              className={`py-[6px] px-[12px] rounded-sm text-[0.65rem] font-bold font-display uppercase tracking-[0.05em] transition-all duration-fast border ${activeCategory === cat.name ? 'bg-primary border-primary text-bg-deep shadow-neon' : 'bg-bg-accent border-gray-800 text-gray-400 hover:border-gray-600 hover:text-white'}`}
+              className={`py-[4px] px-[10px] sm:py-[6px] sm:px-[12px] rounded-sm text-[0.6rem] sm:text-[0.65rem] font-bold font-display uppercase tracking-[0.05em] transition-all duration-fast border ${activeCategory === cat.name ? 'bg-primary border-primary text-bg-deep shadow-neon' : 'bg-bg-accent border-gray-800 text-gray-400 hover:border-gray-600 hover:text-white'}`}
               onClick={() => setActiveCategory(activeCategory === cat.name ? null : cat.name)}
             >
               {cat.name}
@@ -196,7 +196,7 @@ export function Routines({ onClose, isModal = false }) {
         <AnimatePresence mode="wait">
           {activeCategory && (
             <motion.div 
-              className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-xs p-md bg-white/[0.02] rounded-sm border border-gray-800"
+              className="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] gap-xs p-md bg-white/[0.02] rounded-sm border border-gray-800"
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
@@ -204,11 +204,11 @@ export function Routines({ onClose, isModal = false }) {
               {dynamicCategories.find(c => c.name === activeCategory)?.exercises.map(ex => (
                 <button
                   key={ex}
-                  className="flex items-center gap-xs p-2 bg-bg-card border border-gray-800 rounded-xs text-white text-[0.7rem] text-left transition-all duration-fast hover:border-primary hover:bg-primary/5 hover:-translate-y-[1px]"
+                  className="flex items-center gap-xs p-2 bg-bg-card border border-gray-800 rounded-xs text-white text-[0.65rem] text-left transition-all duration-fast hover:border-primary hover:bg-primary/5"
                   onClick={() => addQuickExercise(ex)}
                 >
-                  <Plus size={12} className="text-primary shrink-0" />
-                  {ex}
+                  <Plus size={10} className="text-primary shrink-0" />
+                  <span className="truncate">{ex}</span>
                 </button>
               ))}
             </motion.div>
@@ -216,34 +216,34 @@ export function Routines({ onClose, isModal = false }) {
         </AnimatePresence>
       </div>
 
-      <div className="mb-0">
-        <label className="block text-[0.75rem] font-extrabold font-display uppercase tracking-[0.1em] text-gray-500 mb-md">Exercises</label>
+      <div className="mb-0 overflow-y-auto flex-1 no-scrollbar pr-xs">
+        <label className="block text-[0.7rem] sm:text-[0.75rem] font-extrabold font-display uppercase tracking-[0.1em] text-gray-500 mb-md">Exercises</label>
         {newExercises.map((exercise, index) => (
-          <div key={index} className="flex gap-sm mb-md">
+          <div key={index} className="flex gap-xs sm:gap-sm mb-md">
             <input
               type="text"
               value={exercise.name}
               onChange={(e) => updateExerciseField(index, 'name', e.target.value)}
-              placeholder="Exercise name"
-              className="flex-[2] p-[0.875rem_1rem] bg-bg-accent border border-gray-800 rounded-sm text-white focus:border-primary focus:shadow-neon outline-none"
+              placeholder="Exercise"
+              className="flex-[2] p-3 sm:p-[0.875rem_1rem] bg-bg-accent border border-gray-800 rounded-sm text-white text-sm focus:border-primary focus:shadow-neon outline-none min-w-0"
             />
             <input
               type="number"
               value={exercise.sets || ''}
               onChange={(e) => updateExerciseField(index, 'sets', Number(e.target.value))}
-              placeholder="Sets"
-              className="w-[80px] p-[0.875rem] text-center bg-bg-accent border border-gray-800 rounded-sm text-white focus:border-primary focus:shadow-neon outline-none"
+              placeholder="S"
+              className="w-[50px] sm:w-[80px] p-3 text-center bg-bg-accent border border-gray-800 rounded-sm text-white text-sm focus:border-primary focus:shadow-neon outline-none"
             />
             <input
               type="number"
               value={exercise.reps || ''}
               onChange={(e) => updateExerciseField(index, 'reps', Number(e.target.value))}
-              placeholder="Reps"
-              className="w-[80px] p-[0.875rem] text-center bg-bg-accent border border-gray-800 rounded-sm text-white focus:border-primary focus:shadow-neon outline-none"
+              placeholder="R"
+              className="w-[50px] sm:w-[80px] p-3 text-center bg-bg-accent border border-gray-800 rounded-sm text-white text-sm focus:border-primary focus:shadow-neon outline-none"
             />
             {newExercises.length > 1 && (
               <button 
-                className="p-sm bg-transparent text-gray-700 rounded-sm transition-all duration-fast hover:text-error hover:bg-error/10"
+                className="p-xs sm:p-sm bg-transparent text-gray-700 rounded-sm transition-all duration-fast hover:text-error hover:bg-error/10 shrink-0"
                 onClick={() => removeExerciseField(index)}
               >
                 <X size={16} />
@@ -251,19 +251,19 @@ export function Routines({ onClose, isModal = false }) {
             )}
           </div>
         ))}
-        <button className="flex items-center justify-center gap-sm p-[10px] bg-transparent text-primary font-extrabold font-display uppercase tracking-[0.1em] text-[0.65rem] transition-all duration-fast border border-dashed border-gray-800 w-full rounded-sm hover:border-primary hover:bg-primary/5" onClick={addExerciseField}>
-          <Plus size={16} />
+        <button className="flex items-center justify-center gap-sm p-[10px] bg-transparent text-primary font-extrabold font-display uppercase tracking-[0.1em] text-[0.6rem] sm:text-[0.65rem] transition-all duration-fast border border-dashed border-gray-800 w-full rounded-sm hover:border-primary hover:bg-primary/5" onClick={addExerciseField}>
+          <Plus size={14} />
           Add Exercise
         </button>
       </div>
 
-      <div className="mt-auto pt-xl">
+      <div className="mt-auto pt-lg sm:pt-xl shrink-0">
         <button 
-          className="flex items-center justify-center gap-sm py-[10px] px-[25px] bg-secondary text-white font-extrabold font-display uppercase tracking-[0.1em] text-[0.75rem] rounded-sm shadow-[0_0_15px_var(--color-secondary-glow)] transition-all duration-fast hover:not-disabled:bg-white hover:not-disabled:text-secondary hover:not-disabled:shadow-[0_0_25px_var(--color-secondary-glow)] disabled:opacity-50 disabled:cursor-not-allowed w-full"
+          className="flex items-center justify-center gap-sm py-[12px] px-[25px] bg-secondary text-white font-extrabold font-display uppercase tracking-[0.1em] text-[0.7rem] sm:text-[0.75rem] rounded-sm shadow-[0_0_15px_var(--color-secondary-glow)] transition-all duration-fast hover:not-disabled:bg-white hover:not-disabled:text-secondary hover:not-disabled:shadow-[0_0_25px_var(--color-secondary-glow)] disabled:opacity-50 disabled:cursor-not-allowed w-full"
           onClick={handleCreate}
           disabled={creating || !newName.trim()}
         >
-          {creating ? <Loader2 className="animate-spin" size={18} /> : 'Create Routine'}
+          {creating ? <Loader2 className="animate-spin" size={18} /> : 'Create'}
         </button>
       </div>
     </div>
@@ -301,43 +301,42 @@ export function Routines({ onClose, isModal = false }) {
 
   return (
     <motion.div 
-      className="max-w-[1000px] mx-auto"
+      className="max-w-[1000px] mx-auto px-1 sm:px-0"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
     >
-      <header className="mb-[3rem] pb-md border-b border-gray-800">
+      <header className="mb-lg sm:mb-[3rem] pb-md border-b border-gray-800">
         <div className="flex justify-between items-end flex-wrap gap-md w-full">
-          <div>
-            <h1 className="text-[1.75rem] font-black font-display text-white uppercase tracking-[0.1em] mb-xs">Workout Routines</h1>
-            <p className="text-primary m-0 text-[0.7rem] font-display uppercase tracking-[0.2em] opacity-70">Create and track your exercise routines</p>
+          <div className="min-w-0">
+            <h1 className="text-[1.25rem] sm:text-[1.75rem] font-black font-display text-white uppercase tracking-[0.1em] mb-xs truncate">Routines</h1>
+            <p className="text-primary m-0 text-[0.6rem] sm:text-[0.7rem] font-display uppercase tracking-[0.2em] opacity-70">Track your workouts</p>
           </div>
-          <button className="flex items-center gap-sm py-2.5 px-5 bg-primary text-bg-deep rounded-sm font-extrabold font-display uppercase tracking-[0.1em] text-[0.75rem] shadow-[0_0_15px_var(--color-primary-glow)] transition-all duration-fast hover:bg-white hover:shadow-[0_0_25px_rgba(255,255,255,0.4)] hover:-translate-y-[2px]" onClick={() => setShowCreate(true)}>
-            <Plus size={20} />
-            New Routine
+          <button className="flex items-center gap-xs sm:gap-sm py-2 px-4 sm:py-2.5 sm:px-5 bg-primary text-bg-deep rounded-sm font-extrabold font-display uppercase tracking-[0.1em] text-[0.65rem] sm:text-[0.75rem] shadow-[0_0_15px_var(--color-primary-glow)] transition-all duration-fast hover:bg-white hover:shadow-[0_0_25px_rgba(255,255,255,0.4)]" onClick={() => setShowCreate(true)}>
+            <Plus size={18} className="sm:w-[20px] sm:h-[20px]" />
+            New
           </button>
         </div>
       </header>
 
       {loading ? (
-        <div className="text-center py-[4.5rem]">
-          <div className="h-[200px] bg-bg-accent rounded-md mb-md animate-pulse border border-gray-800" />
-          <div className="h-[200px] bg-bg-accent rounded-md mb-md animate-pulse border border-gray-800" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-md sm:gap-xl">
+          {[1,2,3].map(i => <div key={i} className="h-[200px] bg-bg-accent rounded-md animate-pulse border border-gray-800" />)}
         </div>
       ) : routines.length === 0 ? (
-        <div className="text-center py-[4.5rem]">
+        <div className="text-center py-3xl px-md">
           <Dumbbell size={48} className="text-gray-800 mb-lg drop-shadow-[0_0_10px_rgba(0,0,0,0.5)] mx-auto" />
-          <h3 className="mb-sm font-display uppercase text-white">No routines yet</h3>
-          <p className="text-gray-500 mb-xl">Create your first workout routine to get started</p>
+          <h3 className="mb-sm font-display uppercase text-white text-[1rem]">No routines yet</h3>
+          <p className="text-gray-500 mb-xl text-[0.8rem]">Create your first workout routine to get started</p>
           <button className="btn-primary" onClick={() => setShowCreate(true)}>
             Create Routine
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-xl">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-md sm:gap-xl">
           {routines.map((routine) => (
             <motion.div 
               key={routine.id} 
-              className="bg-bg-card rounded-md p-xl border border-gray-800 transition-all duration-normal relative overflow-hidden flex flex-col hover:-translate-y-2 hover:border-primary hover:shadow-[0_10px_30px_rgba(0,0,0,0.5)] before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-[2px] before:bg-primary before:opacity-30 hover:before:opacity-100 hover:before:shadow-neon"
+              className="bg-bg-card rounded-md p-md sm:p-xl border border-gray-800 transition-all duration-normal relative overflow-hidden flex flex-col hover:border-primary hover:shadow-[0_10px_30px_rgba(0,0,0,0.5)] before:content-[''] before:absolute before:top-0 before:left-0 before:w-full before:h-[2px] before:bg-primary before:opacity-30 hover:before:opacity-100 hover:before:shadow-neon"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
             >
