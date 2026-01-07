@@ -209,161 +209,163 @@ export function History() {
 
   return (
     <motion.div 
-      className="max-w-[1000px] w-full mx-auto"
+      className="max-w-[1000px] w-full mx-auto px-1 sm:px-0 overflow-hidden"
       variants={historyVariants}
       initial="hidden"
       animate="show"
       exit="exit"
     >
-      <section className="grid grid-cols-4 gap-md mb-xl max-lg:grid-cols-2 max-sm:grid-cols-1">
+      <section className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-md mb-lg sm:mb-xl w-full">
         <button 
-          className={`bg-bg-card border border-gray-800 rounded-md p-lg flex items-center gap-md transition-all duration-fast cursor-pointer text-left w-full hover:border-primary hover:-translate-y-1 hover:shadow-[0_5px_15px_rgba(0,0,0,0.3)] bg-success/5 border-success ${activeToggle === 'good' ? 'border-2 -translate-y-1 border-[#22c55e] shadow-[0_0_15px_rgba(34,197,94,0.2)]' : ''}`}
+          className={`bg-bg-card border border-gray-800 rounded-md p-sm sm:p-lg flex items-center gap-2 sm:gap-md transition-all duration-fast cursor-pointer text-left w-full hover:border-primary bg-success/5 border-success ${activeToggle === 'good' ? 'border-2 border-[#22c55e] shadow-[0_0_15px_rgba(34,197,94,0.2)]' : ''}`}
           onClick={() => setActiveToggle(activeToggle === 'good' ? null : 'good')}
         >
-          <div className="w-[44px] h-[44px] rounded-sm bg-success text-bg-deep flex items-center justify-center text-[1.25rem] border border-white/5 shadow-success-glow"><CheckCircle size={20} /></div>
-          <div className="flex flex-col">
-            <span className="text-[1.25rem] font-black text-white font-display">{stats.goodDays}</span>
-            <span className="text-[0.65rem] text-gray-500 font-display uppercase tracking-[0.1em]">Target Hit</span>
+          <div className="w-[32px] h-[32px] sm:w-[44px] sm:h-[44px] rounded-sm bg-success text-bg-deep flex items-center justify-center shrink-0 shadow-success-glow"><CheckCircle size={16} className="sm:w-[18px] sm:h-[18px]" /></div>
+          <div className="flex flex-col min-w-0 flex-1">
+            <span className="text-[1rem] sm:text-[1.25rem] font-black text-white font-display leading-none">{stats.goodDays}</span>
+            <span className="text-[0.5rem] sm:text-[0.65rem] text-gray-500 font-display uppercase tracking-[0.1em] truncate">Good</span>
           </div>
         </button>
         <button 
-          className={`bg-bg-card border border-gray-800 rounded-md p-lg flex items-center gap-md transition-all duration-fast cursor-pointer text-left w-full hover:border-primary hover:-translate-y-1 hover:shadow-[0_5px_15px_rgba(0,0,0,0.3)] bg-error/5 border-error ${activeToggle === 'bad' ? 'border-2 -translate-y-1 border-[#ef4444] shadow-[0_0_15px_rgba(239,68,68,0.2)]' : ''}`}
+          className={`bg-bg-card border border-gray-800 rounded-md p-sm sm:p-lg flex items-center gap-2 sm:gap-md transition-all duration-fast cursor-pointer text-left w-full hover:border-primary bg-error/5 border-error ${activeToggle === 'bad' ? 'border-2 border-[#ef4444] shadow-[0_0_15px_rgba(239,68,68,0.2)]' : ''}`}
           onClick={() => setActiveToggle(activeToggle === 'bad' ? null : 'bad')}
         >
-          <div className="w-[44px] h-[44px] rounded-sm bg-error text-white flex items-center justify-center text-[1.25rem] border border-white/5 shadow-[0_0_10px_rgba(255,49,49,0.5)]"><XCircle size={20} /></div>
-          <div className="flex flex-col">
-            <span className="text-[1.25rem] font-black text-white font-display">{stats.badDays}</span>
-            <span className="text-[0.65rem] text-gray-500 font-display uppercase tracking-[0.1em]">Off Target</span>
+          <div className="w-[32px] h-[32px] sm:w-[44px] sm:h-[44px] rounded-sm bg-error text-white flex items-center justify-center shrink-0 shadow-[0_0_10px_rgba(255,49,49,0.5)]"><XCircle size={16} className="sm:w-[18px] sm:h-[18px]" /></div>
+          <div className="flex flex-col min-w-0 flex-1">
+            <span className="text-[1rem] sm:text-[1.25rem] font-black text-white font-display leading-none">{stats.badDays}</span>
+            <span className="text-[0.5rem] sm:text-[0.65rem] text-gray-500 font-display uppercase tracking-[0.1em] truncate">Off</span>
           </div>
         </button>
-        <div className="bg-bg-card border border-gray-800 rounded-md p-lg flex items-center gap-md transition-all duration-fast cursor-pointer text-left w-full hover:border-primary hover:-translate-y-1 hover:shadow-[0_5px_15px_rgba(0,0,0,0.3)]">
-          <div className="w-[44px] h-[44px] rounded-sm bg-bg-accent text-primary flex items-center justify-center text-[1.25rem] border border-white/5">
-            {stats.trend > 0 ? <TrendingUp size={20} /> : stats.trend < 0 ? <TrendingDown size={20} /> : <Minus size={20} />}
+        <div className="bg-bg-card border border-gray-800 rounded-md p-sm sm:p-lg flex items-center gap-2 sm:gap-md transition-all duration-fast text-left w-full hover:border-primary">
+          <div className="w-[32px] h-[32px] sm:w-[44px] sm:h-[44px] rounded-sm bg-bg-accent text-primary flex items-center justify-center shrink-0 border border-white/5">
+            {stats.trend > 0 ? <TrendingUp size={16} /> : stats.trend < 0 ? <TrendingDown size={16} /> : <Minus size={16} />}
           </div>
-          <div className="flex flex-col">
-            <span className={`text-[1.25rem] font-black font-display ${stats.trend > 0 ? 'text-secondary' : stats.trend < 0 ? 'text-primary' : 'text-white'}`}>
+          <div className="flex flex-col min-w-0 flex-1">
+            <span className={`text-[1rem] sm:text-[1.25rem] font-black font-display leading-none ${stats.trend > 0 ? 'text-secondary' : stats.trend < 0 ? 'text-primary' : 'text-white'}`}>
               {stats.trend > 0 ? '+' : ''}{stats.trend}%
             </span>
-            <span className="text-[0.65rem] text-gray-500 font-display uppercase tracking-[0.1em]">Trend</span>
+            <span className="text-[0.5rem] sm:text-[0.65rem] text-gray-500 font-display uppercase tracking-[0.1em] truncate">Trend</span>
           </div>
         </div>
-        <div className="bg-bg-card border border-gray-800 rounded-md p-lg flex items-center gap-md transition-all duration-fast cursor-pointer text-left w-full hover:border-primary hover:-translate-y-1 hover:shadow-[0_5px_15px_rgba(0,0,0,0.3)]">
-          <div className="w-[44px] h-[44px] rounded-sm bg-bg-accent text-primary flex items-center justify-center text-[1.25rem] border border-white/5">🔥</div>
-          <div className="flex flex-col">
-            <span className="text-[1.25rem] font-black text-white font-display">{stats.streak}</span>
-            <span className="text-[0.65rem] text-gray-500 font-display uppercase tracking-[0.1em]">Streak</span>
+        <div className="bg-bg-card border border-gray-800 rounded-md p-sm sm:p-lg flex items-center gap-2 sm:gap-md transition-all duration-fast text-left w-full hover:border-primary">
+          <div className="w-[32px] h-[32px] sm:w-[44px] sm:h-[44px] rounded-sm bg-bg-accent text-primary flex items-center justify-center shrink-0 border border-white/5 font-display text-[0.8rem] sm:text-sm">🔥</div>
+          <div className="flex flex-col min-w-0 flex-1">
+            <span className="text-[1rem] sm:text-[1.25rem] font-black text-white font-display leading-none">{stats.streak}</span>
+            <span className="text-[0.5rem] sm:text-[0.65rem] text-gray-500 font-display uppercase tracking-[0.1em] truncate">Streak</span>
           </div>
         </div>
       </section>
 
-      <section className="bg-bg-card border border-gray-800 rounded-md p-xl mb-xl relative">
-        <div className="flex justify-between items-center mb-xl">
-          <h2 className="text-[0.8rem] font-extrabold text-white font-display uppercase tracking-[0.1em] m-0">Activity Matrix</h2>
-          <span className="text-[0.6rem] text-primary font-display uppercase tracking-[0.1em] opacity-60">Last 15 Weeks</span>
+      <section className="bg-bg-card border border-gray-800 rounded-md p-md sm:p-xl mb-xl relative overflow-hidden w-full">
+        <div className="flex justify-between items-center mb-lg sm:mb-xl">
+          <h2 className="text-[0.7rem] sm:text-[0.8rem] font-extrabold text-white font-display uppercase tracking-[0.1em] m-0">Activity Matrix</h2>
+          <span className="text-[0.5rem] sm:text-[0.6rem] text-primary font-display uppercase tracking-[0.1em] opacity-60">Last 15 Weeks</span>
         </div>
         
-        <motion.div 
-          className="grid grid-cols-[repeat(21,1fr)] gap-[6px] mb-xl max-[800px]:grid-cols-[repeat(15,1fr)] max-[800px]:gap-[4px] max-[500px]:grid-cols-[repeat(7,1fr)] max-[500px]:gap-[4px]"
-          variants={matrixContainerVariants}
-          initial="hidden"
-          animate="show"
-        >
-          {matrixData.map(({ day, data, color, isToday, hasData }, i) => {
-            const isGood = isDayGood(data) === true;
-            const isBad = isDayGood(data) === false;
-            const isHighlighted = (activeToggle === 'good' && isGood) || (activeToggle === 'bad' && isBad);
-            const isDimmed = activeToggle && !isHighlighted;
-            
-            const displayColor = isHighlighted 
-              ? (activeToggle === 'good' ? '#22c55e' : '#ef4444')
-              : color;
+        <div className="w-full overflow-x-auto no-scrollbar pb-xs touch-pan-x">
+          <motion.div 
+            className="grid grid-cols-[repeat(21,minmax(22px,1fr))] gap-[4px] sm:gap-[6px] mb-lg min-w-[540px] sm:min-w-0 w-full"
+            variants={matrixContainerVariants}
+            initial="hidden"
+            animate="show"
+          >
+            {matrixData.map(({ day, data, color, isToday, hasData }, i) => {
+              const isGood = isDayGood(data) === true;
+              const isBad = isDayGood(data) === false;
+              const isHighlighted = (activeToggle === 'good' && isGood) || (activeToggle === 'bad' && isBad);
+              const isDimmed = activeToggle && !isHighlighted;
+              
+              const displayColor = isHighlighted 
+                ? (activeToggle === 'good' ? '#22c55e' : '#ef4444')
+                : color;
 
-            const isToggled = activeToggle !== null;
-            const hasGlow = !isToggled && hasData && Math.abs((data.calories - target)/target) <= 0.1;
+              const isToggled = activeToggle !== null;
+              const hasGlow = !isToggled && hasData && Math.abs((data.calories - target)/target) <= 0.1;
 
-            // Determine if background is bright enough to need dark text
-            const isBrightBackground = hasData && (
-              displayColor === 'var(--color-primary)' || 
-              displayColor === 'rgba(0, 242, 255, 0.4)' ||
-              displayColor === '#22c55e' ||
-              displayColor === 'rgba(255, 255, 0, 0.2)'
-            );
+              // Determine if background is bright enough to need dark text
+              const isBrightBackground = hasData && (
+                displayColor === 'var(--color-primary)' || 
+                displayColor === 'rgba(0, 242, 255, 0.4)' ||
+                displayColor === '#22c55e' ||
+                displayColor === 'rgba(255, 255, 0, 0.2)'
+              );
 
-            return (
-              <motion.button
-                key={format(day, 'yyyy-MM-dd')}
-                className={`aspect-square rounded-[2px] border border-white/[0.03] bg-bg-accent cursor-pointer p-0 flex items-center justify-center font-display text-[0.5rem] font-bold transition-all duration-150 hover:text-white/80 ${isToday ? 'border-white shadow-[0_0_10px_rgba(255,255,255,0.3)]' : ''} ${
-                  isBrightBackground 
-                    ? 'text-bg-deep' 
-                    : isHighlighted 
-                      ? 'text-white' 
-                      : hasData 
-                        ? 'text-white/80' 
-                        : 'text-white/10'
-                }`}
-                style={{ 
-                  background: displayColor,
-                  boxShadow: hasGlow ? '0 0 8px var(--color-primary-glow)' : 'none',
-                  opacity: isDimmed ? 0.2 : 1,
-                  scale: isDimmed ? 0.9 : 1,
-                  zIndex: isHighlighted ? 10 : 1
-                }}
-                variants={pixelVariants}
-                custom={i}
-                onClick={() => handleDayClick(day)}
-                whileHover={{ scale: 1.2, zIndex: 20 }}
-                title={`${format(day, 'MMM d')}: ${data.calories} CAL`}
-              >
-                {format(day, 'd')}
-              </motion.button>
-            );
-          })}
-        </motion.div>
+              return (
+                <motion.button
+                  key={format(day, 'yyyy-MM-dd')}
+                  className={`aspect-square rounded-[2px] border border-white/[0.03] bg-bg-accent cursor-pointer p-0 flex items-center justify-center font-display text-[0.45rem] sm:text-[0.5rem] font-bold transition-all duration-150 hover:text-white/80 ${isToday ? 'border-white shadow-[0_0_10px_rgba(255,255,255,0.3)]' : ''} ${
+                    isBrightBackground 
+                      ? 'text-bg-deep' 
+                      : isHighlighted 
+                        ? 'text-white' 
+                        : hasData 
+                          ? 'text-white/80' 
+                          : 'text-white/10'
+                  }`}
+                  style={{ 
+                    background: displayColor,
+                    boxShadow: hasGlow ? '0 0 8px var(--color-primary-glow)' : 'none',
+                    opacity: isDimmed ? 0.2 : 1,
+                    scale: isDimmed ? 0.9 : 1,
+                    zIndex: isHighlighted ? 10 : 1
+                  }}
+                  variants={pixelVariants}
+                  custom={i}
+                  onClick={() => handleDayClick(day)}
+                  whileHover={{ scale: 1.2, zIndex: 20 }}
+                  title={`${format(day, 'MMM d')}: ${data.calories} CAL`}
+                >
+                  {format(day, 'd')}
+                </motion.button>
+              );
+            })}
+          </motion.div>
+        </div>
 
-        <div className="flex items-center justify-end gap-lg mt-xl text-[0.6rem] text-gray-500 font-display uppercase">
-          <div className="flex items-center gap-sm">
-            <div className="w-[12px] h-[12px] rounded-[2px] border border-gray-800" style={{ background: 'var(--color-bg-accent)' }} />
-            <span>No Log</span>
+        <div className="flex flex-wrap items-center justify-center sm:justify-end gap-x-md gap-y-sm mt-md text-[0.55rem] sm:text-[0.6rem] text-gray-500 font-display uppercase">
+          <div className="flex items-center gap-xs">
+            <div className="w-[10px] h-[10px] rounded-[2px] border border-gray-800" style={{ background: 'var(--color-bg-accent)' }} />
+            <span>Empty</span>
           </div>
-          <div className="flex items-center gap-sm">
-            <div className="w-[12px] h-[12px] rounded-[2px] border border-current" style={{ background: 'var(--color-primary)' }} />
+          <div className="flex items-center gap-xs">
+            <div className="w-[10px] h-[10px] rounded-[2px] border border-current" style={{ background: 'var(--color-primary)' }} />
             <span>Perfect</span>
           </div>
-          <div className="flex items-center gap-sm">
-            <div className="w-[12px] h-[12px] rounded-[2px] border border-current" style={{ background: 'rgba(0, 242, 255, 0.4)' }} />
+          <div className="flex items-center gap-xs">
+            <div className="w-[10px] h-[10px] rounded-[2px] border border-current" style={{ background: 'rgba(0, 242, 255, 0.4)' }} />
             <span>Good</span>
           </div>
-          <div className="flex items-center gap-sm">
-            <div className="w-[12px] h-[12px] rounded-[2px] border border-current" style={{ background: 'var(--color-secondary)' }} />
+          <div className="flex items-center gap-xs">
+            <div className="w-[10px] h-[10px] rounded-[2px] border border-current" style={{ background: 'var(--color-secondary)' }} />
             <span>Over</span>
           </div>
-          <div className="flex items-center gap-sm">
-            <div className="w-[12px] h-[12px] rounded-[2px] border border-current" style={{ background: 'rgba(0, 242, 255, 0.15)' }} />
+          <div className="flex items-center gap-xs">
+            <div className="w-[10px] h-[10px] rounded-[2px] border border-current" style={{ background: 'rgba(0, 242, 255, 0.15)' }} />
             <span>Under</span>
           </div>
         </div>
       </section>
 
-      <section className="mb-xl">
+      <section className="mb-xl w-full">
         <h2 className="text-[0.8rem] font-extrabold mb-lg font-display text-white uppercase tracking-[0.1em]">Macro Consumption</h2>
-        <div className="grid grid-cols-3 gap-md max-[600px]:grid-cols-1">
-          <div className="bg-bg-card border border-gray-800 rounded-md p-xl flex flex-col items-center text-center gap-sm transition-all duration-fast hover:border-primary hover:-translate-y-1">
-            <Beef size={24} className="text-primary mb-xs drop-shadow-[0_0_5px_var(--color-primary-glow)]" />
-            <span className="text-[1.5rem] font-black text-white font-display">{stats.totalProtein.toLocaleString()}g</span>
-            <span className="text-[0.7rem] text-gray-300 font-display uppercase tracking-[0.1em]">Protein</span>
-            <span className="text-[0.6rem] text-gray-500 font-body">30-day avg</span>
+        <div className="grid grid-cols-3 gap-sm sm:gap-md max-[600px]:grid-cols-1 w-full">
+          <div className="bg-bg-card border border-gray-800 rounded-md p-md sm:p-xl flex flex-col items-center text-center gap-xs sm:gap-sm transition-all duration-fast hover:border-primary hover:-translate-y-1 w-full">
+            <Beef size={20} className="text-primary mb-xs sm:w-[24px] sm:h-[24px] drop-shadow-[0_0_5px_var(--color-primary-glow)]" />
+            <span className="text-[1.25rem] sm:text-[1.5rem] font-black text-white font-display leading-none">{stats.totalProtein.toLocaleString()}g</span>
+            <span className="text-[0.6rem] sm:text-[0.7rem] text-gray-300 font-display uppercase tracking-[0.1em]">Protein</span>
+            <span className="text-[0.55rem] sm:text-[0.6rem] text-gray-500 font-body">30-day avg</span>
           </div>
-          <div className="bg-bg-card border border-gray-800 rounded-md p-xl flex flex-col items-center text-center gap-sm transition-all duration-fast hover:border-primary hover:-translate-y-1">
-            <Wheat size={24} className="text-primary mb-xs drop-shadow-[0_0_5px_var(--color-primary-glow)]" />
-            <span className="text-[1.5rem] font-black text-white font-display">{stats.totalCarbs.toLocaleString()}g</span>
-            <span className="text-[0.7rem] text-gray-300 font-display uppercase tracking-[0.1em]">Carbs</span>
-            <span className="text-[0.6rem] text-gray-500 font-body">30-day avg</span>
+          <div className="bg-bg-card border border-gray-800 rounded-md p-md sm:p-xl flex flex-col items-center text-center gap-xs sm:gap-sm transition-all duration-fast hover:border-primary hover:-translate-y-1 w-full">
+            <Wheat size={20} className="text-primary mb-xs sm:w-[24px] sm:h-[24px] drop-shadow-[0_0_5px_var(--color-primary-glow)]" />
+            <span className="text-[1.25rem] sm:text-[1.5rem] font-black text-white font-display leading-none">{stats.totalCarbs.toLocaleString()}g</span>
+            <span className="text-[0.6rem] sm:text-[0.7rem] text-gray-300 font-display uppercase tracking-[0.1em]">Carbs</span>
+            <span className="text-[0.55rem] sm:text-[0.6rem] text-gray-500 font-body">30-day avg</span>
           </div>
-          <div className="bg-bg-card border border-gray-800 rounded-md p-xl flex flex-col items-center text-center gap-sm transition-all duration-fast hover:border-primary hover:-translate-y-1">
-            <Droplets size={24} className="text-primary mb-xs drop-shadow-[0_0_5px_var(--color-primary-glow)]" />
-            <span className="text-[1.5rem] font-black text-white font-display">{stats.totalFat.toLocaleString()}g</span>
-            <span className="text-[0.7rem] text-gray-300 font-display uppercase tracking-[0.1em]">Fat</span>
-            <span className="text-[0.6rem] text-gray-500 font-body">30-day avg</span>
+          <div className="bg-bg-card border border-gray-800 rounded-md p-md sm:p-xl flex flex-col items-center text-center gap-xs sm:gap-sm transition-all duration-fast hover:border-primary hover:-translate-y-1 w-full">
+            <Droplets size={20} className="text-primary mb-xs sm:w-[24px] sm:h-[24px] drop-shadow-[0_0_5px_var(--color-primary-glow)]" />
+            <span className="text-[1.25rem] sm:text-[1.5rem] font-black text-white font-display leading-none">{stats.totalFat.toLocaleString()}g</span>
+            <span className="text-[0.6rem] sm:text-[0.7rem] text-gray-300 font-display uppercase tracking-[0.1em]">Fat</span>
+            <span className="text-[0.55rem] sm:text-[0.6rem] text-gray-500 font-body">30-day avg</span>
           </div>
         </div>
       </section>
